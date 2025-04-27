@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="Scoria/App.axaml" value="Scoria/Scoria.csproj" />
+        <entry key="Scoria/MainWindow.axaml" value="Scoria/Scoria.csproj" />
+      </map>
+    </option>
+  </component>
+</project>
