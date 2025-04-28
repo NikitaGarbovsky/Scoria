@@ -6,6 +6,11 @@ using Markdown.Avalonia.Controls;
 using Markdig;
 using ReactiveUI;
 
+// MainWindow Code-behind:
+// - Watches for changes in the Editor TextBox and updates the Preview live.
+// - Supports toggling between Edit/Preview with Ctrl+E shortcut.
+// - Uses Markdown.Avalonia.Tight to render Markdown.
+
 namespace Scoria
 {
     public partial class MainWindow : Window
@@ -31,7 +36,8 @@ namespace Scoria
                 .Subscribe(_ => UpdatePreview());
 
             // Setup Ctrl+E for toggling editor/preview
-            this.KeyBindings.Add(new KeyBinding {
+            this.KeyBindings.Add(new KeyBinding 
+            {
                 Gesture = new KeyGesture(Key.E, KeyModifiers.Control),
                 Command = ReactiveCommand.Create(TogglePreviewMode)
             });

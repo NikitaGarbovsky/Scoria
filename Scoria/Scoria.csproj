@@ -1,4 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<!--
+Project configuration:
+- Defines target framework (.NET 9.0)
+- Declares dependencies: AvaloniaUI, Markdown rendering libraries, etc.
+-->
+
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net9.0</TargetFramework>

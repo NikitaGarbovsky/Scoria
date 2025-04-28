@@ -1,3 +1,9 @@
+<!--
+MainWindow Layout:
+- Displays what is actually on the main window GUI. 
+- Currently displays an editable markdown renderer panel.
+-->
+
 <Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -5,7 +11,7 @@
     xmlns:mdxaml="https://github.com/whistyun/Markdown.Avalonia.Tight"
     x:Class="Scoria.MainWindow"
     Title="Scoria"
-    Width="900" Height="600">
+    Width="900" Height="900">
 
     <Grid ColumnDefinitions="2*,3*">
 

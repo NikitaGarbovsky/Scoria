@@ -8,11 +8,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/projectSettingsUpdater.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/App.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/App.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/App.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Program.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/Scoria.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Scoria.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -21,7 +23,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DpaMonitoringSettings">
-    <option name="firstShow" value="false" />
+    <option name="autoShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -55,21 +57,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Project.Scoria.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Project.Scoria.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "rider.external.source.directories": [
+      "C:\\Users\\Nikita_Work_PC\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\DecompilerCache",
+      "C:\\Users\\Nikita_Work_PC\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\SourcesCache",
+      "C:\\Users\\Nikita_Work_PC\\AppData\\Local\\Symbols\\src"
+    ]
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Scoria" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -101,6 +110,7 @@
       <workItem from="1745741840688" duration="8082000" />
       <workItem from="1745750282961" duration="43000" />
       <workItem from="1745750345435" duration="1391000" />
+      <workItem from="1745789162407" duration="5783000" />
     </task>
     <servers />
   </component>
