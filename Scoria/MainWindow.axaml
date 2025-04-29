@@ -11,22 +11,65 @@ MainWindow Layout:
     xmlns:mdxaml="https://github.com/whistyun/Markdown.Avalonia.Tight"
     x:Class="Scoria.MainWindow"
     Title="Scoria"
-    Width="900" Height="900">
+    Width="900" Height="900"
+    TransparencyLevelHint="AcrylicBlur"
+    ExtendClientAreaToDecorationsHint="True"
+    Background="Transparent">
+    
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"  
+                    TintColor="DarkRed"                
+                    TintOpacity="0.5"                
+                    MaterialOpacity="0.2"    
+                />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+        <!-- 1px Row for TitleBar, * for rest -->
+        <Grid RowDefinitions="32,32,*">
+        
+            <Border
+                Grid.Row="0"
+                Background="Transparent"
+                PointerPressed="TitleBar_PointerPressed" />
 
-    <Grid ColumnDefinitions="2*,3*">
+            <!-- Row 1: Toolbar -->
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Spacing="1">
+                <Button Name="OpenFolderButton"
+                        Content="📂 Open Folder"
+                        Background="Transparent"
+                        Click="OpenFolder_Click" />
+            </StackPanel>
+            
+            <!-- 2) Content goes here -->
+            <Grid Grid.Row="2" ColumnDefinitions="2*,5*">
+                <!-- First part, File Explorer-->
+                <TreeView
+                    Name="FileExplorer"
+                    Grid.Column="0"
+                    Margin="5" 
+                    DoubleTapped="FileExplorer_DoubleTapped"/>
+    
+        <!-- Second part, Markdown editor and markdown previewer-->
+                
+                <!-- Markdown editor -->
+                <TextBox
+                    Name="Editor"
+                    Grid.Column="1"
+                    AcceptsReturn="True"
+                    FontFamily="Consolas"
+                    FontSize="14" />
 
-        <!-- Editor Pane -->
-        <TextBox
-            Name="Editor"
-            Grid.Column="0"
-            AcceptsReturn="True"
-            FontFamily="Consolas"
-            FontSize="14" />
-
-        <!-- Preview Pane (Rendered Markdown) -->
-        <mdxaml:MarkdownScrollViewer
-            Name="Preview"
-            Grid.Column="1" />
-
-    </Grid>
+                <!-- Markdown Previewer-->
+                <mdxaml:MarkdownScrollViewer
+                    Name="Preview"
+                    Grid.Column="1" />
+                
+            </Grid>
+        </Grid>
+    </Panel>
 </Window>
