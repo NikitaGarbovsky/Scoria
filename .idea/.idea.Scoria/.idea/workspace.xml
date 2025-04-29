@@ -10,12 +10,8 @@
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/projectSettingsUpdater.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/App.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/App.axaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/App.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Scoria.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Scoria.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +19,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DpaMonitoringSettings">
-    <option name="autoShow" value="false" />
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -68,15 +64,8 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "vue.rearranger.settings.migration": "true"
-  },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "C:\\Users\\Nikita_Work_PC\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\DecompilerCache",
-      "C:\\Users\\Nikita_Work_PC\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\SourcesCache",
-      "C:\\Users\\Nikita_Work_PC\\AppData\\Local\\Symbols\\src"
-    ]
   }
 }]]></component>
   <component name="RunManager">
@@ -111,6 +100,8 @@
       <workItem from="1745750282961" duration="43000" />
       <workItem from="1745750345435" duration="1391000" />
       <workItem from="1745789162407" duration="5783000" />
+      <workItem from="1745914907392" duration="682000" />
+      <workItem from="1745915604105" duration="6553000" />
     </task>
     <servers />
   </component>

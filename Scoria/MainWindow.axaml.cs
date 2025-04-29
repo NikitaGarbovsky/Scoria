@@ -106,30 +106,51 @@ namespace Scoria
             LoadFolder(path);
         }
         /// <summary>
-        /// Recursively loads all .md files under folderPath
-        /// and populates the TreeView. Stores the full path in each item's Tag.
+        /// Populate the TreeView *without* a top-level folder node.
+        /// Instead, we show the *contents* of that folder as the root items.
         /// </summary>
         private void LoadFolder(string folderPath)
         {
-            // 1) Clear any existing items
             FileExplorer.Items.Clear();
-            
-            // 2) Create the root node
-            var rootItem = new TreeViewItem { Header = Path.GetFileName(folderPath), Tag = folderPath };
-            
-            // 3) Recursively fill it
-            AddChildItems(rootItem, folderPath);
-            
-            // 4) Add it into the TreeView
-            FileExplorer.Items.Add(rootItem);
+
+            // 1) Add all subdirectories (skipping .obsidian)
+            foreach (var dir in Directory.GetDirectories(folderPath)
+                         .Where(d => Path.GetFileName(d) != ".obsidian")
+                         .OrderBy(d => d))
+            {
+                var dirItem = new TreeViewItem
+                {
+                    Header = Path.GetFileName(dir),
+                    Tag    = dir
+                };
+                AddChildItems(dirItem, dir);
+                FileExplorer.Items.Add(dirItem);
+            }
+
+            // 2) Then add all top-level .md files
+            foreach (var file in Directory.GetFiles(folderPath, "*.md")
+                         .OrderBy(f => f))
+            {
+                var fileItem = new TreeViewItem
+                {
+                    Header = Path.GetFileName(file),
+                    Tag    = file
+                };
+                FileExplorer.Items.Add(fileItem);
+            }
         }
         /// <summary>
         /// Adds subfolders and markdown files under `currentPath` as TreeViewItems.
         /// </summary>
         private void AddChildItems(TreeViewItem _parent, string _currentPath)
         {
-            // Add folders
-            foreach (var dir in Directory.GetDirectories(_currentPath).OrderBy(_d => _d))
+            // 0) Make sure we start with an empty list
+            _parent.Items.Clear();
+            
+            // 1) iterate subfolders (skip .obsidian)
+            foreach (var dir in Directory.GetDirectories(_currentPath)
+                         .Where(_d => Path.GetFileName(_d) != ".obsidian")
+                         .OrderBy(_d => _d))
             {
                 var dirItem = new TreeViewItem
                 {
@@ -138,11 +159,12 @@ namespace Scoria
                 };
                 // Recurse
                 AddChildItems(dirItem, dir);
+                
                 // Add into the parent's existing Items collection
                 _parent.Items.Add(dirItem);
             }
 
-            // Add markdown files
+            // 2) iterate .md files
             foreach (var file in Directory.GetFiles(_currentPath, "*.md").OrderBy(_f => _f))
             {
                 var fileItem = new TreeViewItem
@@ -155,14 +177,25 @@ namespace Scoria
         }
         
         /// <summary>
-        /// When the user double‐clicks an entry in the TreeView,
-        /// if it’s a file (Tag is a .md path), load it into the editor.
+        /// Single-click (selection) handler:
+        /// - If you clicked a folder, it toggles expansion.
+        /// - If you clicked a .md file, it loads it into the editor.
         /// </summary>
-        private void FileExplorer_DoubleTapped(object sender, RoutedEventArgs e)
+        private void FileExplorer_SelectionChanged(object? sender, SelectionChangedEventArgs _selectionChangedEventArgs)
         {
-            if (FileExplorer.SelectedItem is TreeViewItem selectedItem && selectedItem.Tag is string filePath)
+            if (FileExplorer.SelectedItem is TreeViewItem item 
+                && item.Tag is string path)
             {
-                Editor.Text = File.ReadAllText(filePath);
+                if (Directory.Exists(path))
+                {
+                    // Toggle expansion on folders
+                    item.IsExpanded = !item.IsExpanded;
+                }
+                else if (File.Exists(path))
+                {
+                    // Load file on single-click
+                    Editor.Text = File.ReadAllText(path);
+                }
             }
         }
 
