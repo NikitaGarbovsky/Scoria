@@ -16,7 +16,7 @@ MainWindow Layout:
     ExtendClientAreaToDecorationsHint="True"
     Background="Transparent">
     
-    <Panel>
+    <Panel Name="RootPanel">
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial
@@ -27,8 +27,8 @@ MainWindow Layout:
                 />
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
-        <!-- 1px Row for TitleBar, * for rest -->
-        <Grid RowDefinitions="32,32,*">
+        <!-- 32px Row for TitleBar, * for rest -->
+        <Grid  RowDefinitions="32,32,*">
         
             <Border
                 Grid.Row="0"

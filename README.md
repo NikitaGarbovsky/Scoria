@@ -1,5 +1,6 @@
 
-
+> This repository and project is a work in progress
+ 
 <!-- Title and Badge section -->
 <p align="center">
   <img src="docs/Screenshots/Scoria_TempIcon.png" alt="Project Icon" width="100" />
@@ -47,23 +48,23 @@ to suit their usecase.
 
 ## ✨ Current Features
 
-- 📝 Live Markdown preview
+- 📝 Live Markdown preview and editor.
 - 🧠 Supports advanced Markdown syntax via [Markdig](https://github.com/xoofx/markdig)
 - 🖼️ Toggle between edit and preview modes with `Ctrl+E`
 - 📂 Open a folder and explore `.md` files via a responsive TreeView
 - 🔄 Auto-renders preview on text changes
-
+- 💾 Save markdown files after editing.
 ---
 
-## 🚧 Planned Features
+## 🚧 Planned Features for MVP
 
-> A brief breakdown of completed and planned features.
+> A brief breakdown of completed and planned features to reach MVP.
 
 | Date Implemented | Feature                                                                                                                   |
 |------------------|---------------------------------------------------------------------------------------------------------------------------|
 | 2025-04-29       | ~~Initial Avalonia UI scaffold, editor + preview mode toggle~~                                                            |
 | 2025-04-29       | ~~TreeView loads `.md` files from folders and supports nested folders~~                                                   |
-|                  | Savable editable markdown text                                                                                            |
+| 2025-05-01       | ~~Savable editable markdown text~~                                                                                        |
 |                  | Robust pane system including tabs: Draggable, pivot-able, panels.                                                         |
 |                  | Feature rich markdown rendering: Checkboxes, yaml header file properties, bi-directional note linking, images & files etc |
 |                  | Settings panel: UI properties and application settings, save settings on startup, project properties.                     |
@@ -79,7 +80,7 @@ to suit their usecase.
 - [Avalonia UI](https://avaloniaui.net/) – Cross-platform WPF-style UI framework
 - [Markdig](https://github.com/xoofx/markdig) – Fast and extensible Markdown parser
 - [Markdown.Avalonia](https://github.com/whistyun/Markdown.Avalonia) – Renders Markdown to Avalonia visuals
-- [.NET 8]
+- [.NET 9]
 
 ---
 
