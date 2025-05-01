@@ -8,10 +8,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Scoria/Models/FileItem.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Services/IFileExplorerService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Services/IToastService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Services/ToastService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/App.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/Scoria.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Scoria.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +57,9 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2wIvKDeQEM5Z9s7JoWSNUBjr9Qe" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -65,7 +75,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -103,7 +113,10 @@
       <workItem from="1745789162407" duration="5783000" />
       <workItem from="1745914907392" duration="682000" />
       <workItem from="1745915604105" duration="6553000" />
-      <workItem from="1746058210371" duration="6300000" />
+      <workItem from="1746058210371" duration="9183000" />
+      <workItem from="1746068322425" duration="1510000" />
+      <workItem from="1746070160417" duration="1280000" />
+      <workItem from="1746080264114" duration="13911000" />
     </task>
     <servers />
   </component>

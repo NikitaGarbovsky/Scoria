@@ -21,13 +21,16 @@ Project configuration:
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.7"/>
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.7"/>
         <PackageReference Include="Markdig" Version="0.41.0"/>
-        <PackageReference Include="Markdown.Avalonia" Version="11.0.3-a1" />
+        <PackageReference Include="Markdown.Avalonia" Version="11.0.2" />
         
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.2.7">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Markdown.Avalonia.Tight" Version="11.0.3-a1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Views\" />
     </ItemGroup>
 </Project>

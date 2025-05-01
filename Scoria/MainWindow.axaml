@@ -1,78 +1,80 @@
-<!--
-MainWindow Layout:
-- Displays what is actually on the main window GUI. 
-- Currently displays an editable markdown renderer panel.
--->
-
 <Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:markdown="clr-namespace:Markdown.Avalonia.Controls;assembly=Markdown.Avalonia.Tight"
-    xmlns:mdxaml="https://github.com/whistyun/Markdown.Avalonia.Tight"
-    x:Class="Scoria.MainWindow"
+    xmlns:vm="using:Scoria.ViewModels"
+    xmlns:viewModels="clr-namespace:Scoria.ViewModels"
+    xmlns:models="clr-namespace:Scoria.Models"
+    xmlns:tpl="clr-namespace:Avalonia.Markup.Xaml.Templates;assembly=Avalonia.Markup.Xaml"
+    x:Class="Scoria.Views.MainWindow"
     Title="Scoria"
     Width="900" Height="900"
     TransparencyLevelHint="AcrylicBlur"
     ExtendClientAreaToDecorationsHint="True"
-    Background="Transparent">
-    
-    <Panel Name="RootPanel">
-        <ExperimentalAcrylicBorder IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial
-                    BackgroundSource="Digger"  
-                    TintColor="DarkRed"                
-                    TintOpacity="0.3"                
-                    MaterialOpacity="0.2"    
-                />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>
-        <!-- 32px Row for TitleBar, * for rest -->
-        <Grid  RowDefinitions="32,32,*">
-        
-            <Border
-                Grid.Row="0"
-                Background="Transparent"
-                PointerPressed="TitleBar_PointerPressed" />
+    Background="Transparent"
+    x:DataType="viewModels:MainWindowViewModel">
+  <!-- 1) KeyBindings for Save and Toggle -->
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
+    <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleEditPreviewCommand}"/>
+  </Window.KeyBindings>
 
-            <!-- Row 1: Toolbar -->
-            <StackPanel Grid.Row="1"
-                        Orientation="Horizontal"
-                        Spacing="1">
-                <Button Name="OpenFolderButton"
-                        Content="📂 Open Folder"
-                        Background="Transparent"
-                        Margin="20,0"
-                        Click="OpenFolder_Click" />
-            </StackPanel>
-            
-            <!-- 2) Content goes here -->
-            <Grid Grid.Row="2" ColumnDefinitions="2*,5*">
-                <!-- First part, File Explorer-->
-                <TreeView
-                    Name="FileExplorer"
-                    Grid.Column="0"
-                    Margin="20" 
-                    SelectionChanged="FileExplorer_SelectionChanged"/>
-    
-        <!-- Second part, Markdown editor and markdown previewer-->
-                
-                <!-- Markdown editor -->
-                <TextBox
-                    Name="Editor"
-                    Grid.Column="1"
-                    AcceptsReturn="True"
-                    FontFamily="Consolas"
-                    FontSize="14"
-                    Margin="20"/>
+  <!-- 3) Top‐level Panel for acrylic + toasts -->
+  <Grid Name="RootPanel">
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+          BackgroundSource="Digger"
+          TintColor="DarkRed"
+          TintOpacity="0.2"
+          MaterialOpacity="0.1" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
 
-                <!-- Markdown Previewer-->
-                <mdxaml:MarkdownScrollViewer
-                    Name="Preview"
-                    Grid.Column="1"
-                    Margin="20"/>
-                
-            </Grid>
-        </Grid>
-    </Panel>
+    <!-- 4) Layout: Explorer | Editor | Preview -->
+    <Grid ColumnDefinitions="2*,5*" RowDefinitions="32,Auto,*">
+      <!-- draggable title‐bar -->
+      <Border Grid.Row="0" Grid.ColumnSpan="3" Background="Transparent"
+              PointerPressed="TitleBar_PointerPressed" />
+
+      <!-- toolbar -->
+      <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="8">
+        <Button Content="📂 Open Folder"
+                Click="OpenFolder_Click"
+                Background="Transparent"/>
+      </StackPanel>
+      
+      <!-- file explorer -->
+      <TreeView Grid.Row="2" Grid.Column="0"
+                ItemsSource="{Binding FileTree}"
+                SelectedItem="{Binding SelectedItem}"
+                Margin="8">
+
+        <TreeView.ItemTemplate>
+          <tpl:TreeDataTemplate ItemsSource="{Binding Children}"
+                                x:DataType="models:FileItem">
+            <TextBlock Text="{Binding Name}" />
+          </tpl:TreeDataTemplate>
+        </TreeView.ItemTemplate>
+
+      </TreeView>
+
+
+      <!-- editor -->
+      <TextBox
+        x:Name="Editor"
+        Grid.Row="2" Grid.Column="1"
+        Text="{Binding EditorText, Mode=TwoWay}"
+        AcceptsReturn="True"
+        Margin="8"
+        IsVisible="{Binding IsEditorVisible}"/>
+
+      <!-- preview -->
+      <ContentControl
+        x:Name="PreviewPane"
+        Grid.Row="2" Grid.Column="1"
+        Content="{Binding PreviewControl}"
+        Margin="8"
+        IsVisible="{Binding IsPreviewVisible}"/>
+    </Grid>
+  </Grid>
 </Window>
