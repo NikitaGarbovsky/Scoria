@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Media;
-using Avalonia.Threading;
+using Markdig.Extensions.TaskLists;
 using Markdig.Syntax;
 using ReactiveUI;
 using Scoria.Models;
@@ -129,9 +125,13 @@ namespace Scoria.ViewModels
             PreviewControl = _markdownRenderer.Render(EditorText, OnTaskToggled);
         private void OnTaskToggled(ListItemBlock li, bool isChecked)
         {
-            // Flip li.Checked, rewrite EditorText via AST.ToString(), etc.
-            SaveCommand.Execute().Subscribe(_ => { });
-            ToggleCommand.Execute().Subscribe(_ => { });
+            // 1) Flip the AST node
+            var task = li.Descendants<TaskList>().FirstOrDefault();
+            if (task != null)
+                task.Checked = isChecked;
+
+            // TODO fix toggling of checkboxes
+            ToggleCommand.Execute().Subscribe();
 
         }
     }

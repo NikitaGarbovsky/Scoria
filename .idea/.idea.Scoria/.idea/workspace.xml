@@ -9,6 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +36,7 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/3559d8206c894c30abbda946a42bec48101200/4c/5c4af0a8/TextBlock.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Scoria/App.axaml" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Scoria/App.axaml.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Scoria/MainWindow.axaml" root0="FORCE_HIGHLIGHTING" />
@@ -107,6 +110,8 @@
       <workItem from="1746070160417" duration="1280000" />
       <workItem from="1746080264114" duration="14128000" />
       <workItem from="1746148800573" duration="963000" />
+      <workItem from="1746265324438" duration="5789000" />
+      <workItem from="1746310202725" duration="2916000" />
     </task>
     <servers />
   </component>
