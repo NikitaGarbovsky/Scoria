@@ -18,7 +18,7 @@
     <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleEditPreviewCommand}"/>
   </Window.KeyBindings>
 
-  <!-- 3) Top‐level Panel for acrylic + toasts -->
+  <!-- 2) Top‐level Panel for acrylic + toasts -->
   <Grid Name="RootPanel">
     <ExperimentalAcrylicBorder IsHitTestVisible="False">
       <ExperimentalAcrylicBorder.Material>
@@ -30,7 +30,7 @@
       </ExperimentalAcrylicBorder.Material>
     </ExperimentalAcrylicBorder>
 
-    <!-- 4) Layout: Explorer | Editor | Preview -->
+    <!-- 3) Layout: Explorer | Editor | Preview -->
     <Grid ColumnDefinitions="2*,5*" RowDefinitions="32,Auto,*">
       <!-- draggable title‐bar -->
       <Border Grid.Row="0" Grid.ColumnSpan="3" Background="Transparent"
@@ -66,15 +66,30 @@
         Text="{Binding EditorText, Mode=TwoWay}"
         AcceptsReturn="True"
         Margin="8"
+        TextWrapping="Wrap"
         IsVisible="{Binding IsEditorVisible}"/>
 
       <!-- preview -->
-      <ContentControl
-        x:Name="PreviewPane"
-        Grid.Row="2" Grid.Column="1"
-        Content="{Binding PreviewControl}"
-        Margin="8"
-        IsVisible="{Binding IsPreviewVisible}"/>
+      <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="PreviewScroll"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        IsVisible="{Binding IsPreviewVisible}">  
+        
+        <ContentControl 
+          x:Name="PreviewPane"
+          Content="{Binding PreviewControl}"
+          Margin="8">
+          
+          <ContentControl.Styles>
+            <Style Selector="ScrollViewer#PreviewScroll TextBlock">
+              <Setter Property="TextWrapping" Value="Wrap"/>
+              <Setter Property="MaxWidth"
+                      Value="{Binding ElementName=PreviewScroll, Path=Bounds.Width}"/>
+            </Style>
+          </ContentControl.Styles>
+        </ContentControl>
+      </ScrollViewer>
+      
     </Grid>
   </Grid>
 </Window>

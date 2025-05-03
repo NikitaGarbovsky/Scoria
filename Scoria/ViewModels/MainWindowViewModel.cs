@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Markdig.Syntax;
 using ReactiveUI;
@@ -51,6 +52,7 @@ namespace Scoria.ViewModels
         }
 
         private Control _previewControl = new TextBlock();
+        
         public Control PreviewControl
         {
             get => _previewControl;

@@ -13,7 +13,7 @@ namespace Scoria.Views
         {
             InitializeComponent();
 
-            // 1) Manually inject our services and renderer into the VM
+            // Create the viewmodel and insert the appropriate objects as params 
             DataContext = new MainWindowViewModel(
                 new FileExplorerService(),
                 new ToastService(RootPanel),
