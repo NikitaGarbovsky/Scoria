@@ -1,14 +1,17 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Markdig;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Markdig.Extensions.TaskLists;
 using Markdig.Syntax;
+using Markdig.Renderers.Normalize;
 using Markdig.Syntax.Inlines;
 
 namespace Scoria.Rendering
@@ -24,19 +27,34 @@ namespace Scoria.Rendering
                 .UseTaskLists()
                 .Build();
         }
-
-        public Control Render(string markdown, Action<ListItemBlock, bool> onTaskToggled)
-        {   
+        /// <summary>
+        /// Renders the markdown into Avalonia controls.
+        /// onTaskToggled is called with (zero-based lineIndex, newCheckedState)
+        /// whenever the user clicks a checkbox.
+        /// </summary>
+        public Control Render(string markdown, Action<int,bool> onTaskToggled)
+        {
+            // 1) parse into AST once
             var document = Markdig.Markdown.Parse(markdown, _pipeline);
-            var panel = new StackPanel { Spacing = 8 };
-
+            
+            // 2) walk blocks
+            var panel    = new StackPanel { Spacing = 8 };
             foreach (var block in document)
-                panel.Children.Add(RenderBlock(block, onTaskToggled));
+            {
+                // skip link-reference definitions entirely
+                if (block is LinkReferenceDefinitionGroup) 
+                    continue;
 
-            return new ScrollViewer { Content = panel };
+                panel.Children.Add(RenderBlock(block, markdown, onTaskToggled));
+            }
+
+            return panel;
         }
 
-        private Control RenderBlock(Block block, Action<ListItemBlock,bool> onTaskToggled)
+        private Control RenderBlock(
+            Block block, 
+            string markdown,
+            Action<int,bool> onTaskToggled)
         {
             switch (block)
             {
@@ -55,71 +73,62 @@ namespace Scoria.Rendering
                     {
                         TextWrapping = TextWrapping.Wrap,
                         FontWeight   = FontWeight.Bold,
-                        Margin       = new Thickness(0,4),
+                        Margin       = new Thickness(0, 4),
+                        FontSize     = Math.Max(12, 32 - hb.Level * 4),
                     };
-                    // concatenate all inline text
                     header.Text = string.Concat(hb.Inline.Select(i => i.ToString()));
-                    // size by level
-                    header.FontSize = Math.Max(12, 32 - (hb.Level * 4));
                     return header;
 
                 // ¶ Paragraph ──────────────────────────────────────
                 case ParagraphBlock pb:
-                    var para = new TextBlock
+                    var paragraphText = string.Concat(pb.Inline.Select(i => i.ToString()));
+                    return new TextBlock
                     {
+                        Text         = paragraphText,
                         TextWrapping = TextWrapping.Wrap,
                         Margin       = new Thickness(0,2)
                     };
-                    foreach (var inline in pb.Inline)
-                        para.Inlines.Add(new Run(inline.ToString()));
-                    return para;
 
                  // ─── a list (ordered or bullet) ──────
                 case ListBlock lb:
-                    var listPanel = new StackPanel 
+                    var listPanel = new StackPanel
                     {
                         Spacing = 4,
-                        Margin  = new Thickness(0,2)
+                        Margin  = new Thickness(0, 2)
                     };
+                    // preserve numbering for ordered lists
+                    int counter = lb.IsOrdered ? (int.TryParse(lb.OrderedStart, out var s) ? s : 1) : 0;
 
-                    // only for ordered lists: could actually number things
-                    int counter = 0;
-                    if(lb.IsOrdered && !int.TryParse(lb.OrderedStart, out counter))
-                        counter = 1;
-
-                    foreach(var child in lb.OfType<ListItemBlock>())
-                        listPanel.Children.Add(RenderListItem(child, lb.IsOrdered, counter++, onTaskToggled));
+                    // render each item
+                    foreach (var item in lb.OfType<ListItemBlock>())
+                        listPanel.Children.Add(
+                            RenderListItem(item, lb.IsOrdered, counter++, markdown, onTaskToggled));
 
                     return listPanel;
 
                 // ─── Fallback ─────────────────────────────────────
                 default:
-                    return new TextBlock
-                    {
-                        Text          = block.ToString(),
-                        TextWrapping  = TextWrapping.Wrap,
-                        Margin        = new Thickness(0,2)
-                    };
+                    // return an empty spacer so we don't see block.ToString()
+                    return new StackPanel { Margin = new Thickness(0) };
             }
             
         }
         private Control RenderListItem(
-            ListItemBlock item,
-            bool            isOrdered,
-            int             number,
-            Action<ListItemBlock,bool> onTaskToggled)
+            ListItemBlock li,
+            bool           isOrdered,
+            int            number,
+            string          markdown,
+            Action<int,bool> onTaskToggled)
         {
-            // Container VStack for this item + any nested lists
-            var container = new StackPanel {
+            // container for marker + potential nested lists
+            var container = new StackPanel
+            {
                 Orientation = Orientation.Vertical,
                 Spacing     = 2
             };
-
-            // 1) The “marker” line: checkbox / number / bullet
-            Control marker;
-
-            // detect a task‐list in the first paragraph
-            var firstPara = item.Descendants<ParagraphBlock>().FirstOrDefault();
+            
+            // find the paragraph for this list item
+            var firstPara = li.Descendants<ParagraphBlock>().FirstOrDefault();
             var task = firstPara?
                 .Inline
                 .Descendants<TaskList>()
@@ -127,53 +136,57 @@ namespace Scoria.Rendering
 
             if(task != null)
             {
-                // build the label text AFTER the [ ] or [x]
-                var text = string.Concat(
+                // capture the exact offset
+                var offset = li.Span.Start;
+                // compute zero-based line index
+                var lineIndex = markdown
+                    .Substring(0, Math.Min(offset, markdown.Length))
+                    .Count(c => c == '\n');
+                
+                // build the label text (everything after the [ ] or [x])
+                var labelText = string.Concat(
                     firstPara.Inline
-                        .SkipWhile(i=>!(i is TaskList))
+                        .SkipWhile(i => !(i is TaskList))
                         .Skip(1)
-                        .Select(i=>i.ToString())
-                ).TrimStart();
+                        .Select(i => i.ToString())
+                ).Trim();
 
-                var label = new TextBlock 
-                {
-                    TextWrapping = TextWrapping.Wrap,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Text         = text
-                };
-
-                var cb = new CheckBox 
+                var cb = new CheckBox
                 {
                     IsChecked = task.Checked,
-                    Content   = label,
+                    Content   = labelText,
+                    Margin    = new Thickness(0, 2),
+                    HorizontalContentAlignment = HorizontalAlignment.Left
                 };
-                cb.Checked   += (_,__) => onTaskToggled(item, true);
-                cb.Unchecked += (_,__) => onTaskToggled(item, false);
-                marker = cb;
+                
+                // capture the exact zero-based source line of this ListItemBlock
+                cb.Checked   += (_,__) => onTaskToggled(lineIndex, true);
+                cb.Unchecked += (_,__) => onTaskToggled(lineIndex, false);
+
+                container.Children.Add(cb);
             }
             else
             {
-                // not a task‐list → bullet or number
-                var bulletText = isOrdered
-                    ? $"{number}. "
-                    : "• ";
-
-                marker = new TextBlock 
+                // plain bullet or number
+                var bullet = isOrdered ? $"{number}. " : "• ";
+                container.Children.Add(new TextBlock
                 {
+                    Text         = bullet + (
+                        firstPara?
+                            .Inline
+                            .FirstOrDefault()?
+                            .ToString()
+                        ?? ""
+                    ),
                     TextWrapping = TextWrapping.Wrap,
-                    Margin       = new Thickness(0,2),
-                    Text         = $"{bulletText}{firstPara?.Inline.FirstOrDefault()?.ToString() ?? ""}"
-                };
+                    Margin       = new Thickness(0, 2)
+                });
             }
 
-            container.Children.Add(marker);
-
-            // 2) Handle nested lists: indent them by 20px
-            foreach (var nested in item.OfType<ListBlock>())
+            // now handle **nested** lists (indent by 20px)
+            foreach (var nested in li.OfType<ListBlock>())
             {
-                var nestedControl = RenderBlock(nested, onTaskToggled);
-                // Add left-indent for child lists TODO this only works with a single indentation, if you need more,
-                // figure out a recursive system
+                var nestedControl = RenderBlock(nested, markdown, onTaskToggled);
                 nestedControl.Margin = new Thickness(20, 0, 0, 0);
                 container.Children.Add(nestedControl);
             }

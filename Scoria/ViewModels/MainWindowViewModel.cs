@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Markdig.Extensions.TaskLists;
 using Markdig.Syntax;
@@ -38,7 +39,7 @@ namespace Scoria.ViewModels
         public ReactiveCommand<Unit, Unit> ToggleEditPreviewCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         public ReactiveCommand<Unit, Unit> ToggleCommand { get; }
-
+        public ReactiveCommand<Unit, Unit> RenderCommand             { get; }
         private string _editorText = "";
 
         public string EditorText
@@ -78,8 +79,9 @@ namespace Scoria.ViewModels
 
             ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
             
-            SaveCommand = ReactiveCommand.Create(SaveCurrent);   // sync, UI thread
-            ToggleCommand = ReactiveCommand.Create(RenderPreview);
+            ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
+            SaveCommand               = ReactiveCommand.Create(SaveCurrent);
+            RenderCommand             = ReactiveCommand.Create(RenderPreview);
             
             RenderPreview();
         }
@@ -118,21 +120,36 @@ namespace Scoria.ViewModels
 
         private void LoadFile(string path)
         {
-            EditorText      = File.ReadAllText(path);
-            PreviewControl  = _markdownRenderer.Render(EditorText, OnTaskToggled);
+            EditorText     = File.ReadAllText(path);
+            RenderPreview();
         }
-        void RenderPreview() =>
-            PreviewControl = _markdownRenderer.Render(EditorText, OnTaskToggled);
-        private void OnTaskToggled(ListItemBlock li, bool isChecked)
+        private void RenderPreview()
         {
-            // 1) Flip the AST node
-            var task = li.Descendants<TaskList>().FirstOrDefault();
-            if (task != null)
-                task.Checked = isChecked;
-
-            // TODO fix toggling of checkboxes
-            ToggleCommand.Execute().Subscribe();
-
+            PreviewControl = _markdownRenderer.Render(
+                EditorText,
+                OnTaskToggled
+            );
+        }
+        /// <summary>
+        /// Used by OnTaskToggled to convert 
+        /// </summary>
+        private static readonly Regex _taskToggleRegex =
+            new Regex(@"- \[(?: |x|X)\]", RegexOptions.Compiled);
+        /// <summary>
+        /// Called whenever user clicks a checkbox in the rendered view.
+        /// We flip exactly that line in our raw EditorText, then re-render.
+        /// </summary>
+        private void OnTaskToggled(int lineIndex, bool isChecked)
+        {
+            var lines = EditorText.Split('\n').ToList();
+            if (lineIndex >= 0 && lineIndex < lines.Count)
+            {
+                // replace any "- [ ]", "- [x]" or "- [X]" with the desired state:
+                var replacement = isChecked ? "- [x]" : "- [ ]";
+                lines[lineIndex] = _taskToggleRegex.Replace(lines[lineIndex], replacement);
+                EditorText = string.Join("\n", lines);
+            }
+            RenderPreview();
         }
     }
 }
