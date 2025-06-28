@@ -7,13 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Scoria/Services/NoteLinkIndex.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" afterDir="false" />
-    </list>
+    <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

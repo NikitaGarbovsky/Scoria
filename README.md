@@ -30,18 +30,22 @@
 ##  Introduction
 
 <p>
-Scoria is an obsidian-inspired markdown text editor aimed at the markdown nerd who wants a bit more hands on control over 
-their daily writer, journaling, TODO list and eternal data tracking application.
+Scoria is an obsidian-inspired markdown text editor with a much more specific use case. 
+
+I use/used obsidian for years as my daily driver for note-taking(zettelkasten), journaling, daily notes (TODO), life 
+organization, habit tracking and much more. What I fundamentally love about obsidian is its openness, and the 
+data-oriented approach with its simple markdown files. 
 
 If you're not familiar with the "file over app" philosophy, I recommend checking out this excellent breakdown by CEO of 
 obsidian: https://stephango.com/file-over-app
 
-Scoria's goal is to take the best parts of obsidian and crank the performance x10 by not using a bloated tech stack,
-while still implementing core features to enable Scoria to take over as the daily driver of markdown editing you may find yourself needing.
+However, after years of use, the software is also fundamentally flawed, utilizing a bloated electron tech stack. 
 
-Scoria is not a competitor, it is free and will always be. This project started as simply a frustration with the drawbacks
-of electron bloat. I expect the people who use Scoria will be able to rip it apart and add their own custom functionality 
-to suit their usecase.
+Scoria's goal is to take the best parts of my own personal usage of Obsidian and crank the performance 10x. Its purpose 
+is that of a performant daily driver that you can use to structure aspects of your life, projects or learnings in a 
+simple, but deep quick and efficient manner.
+
+I'm not designing Scoria to be a competitor, it is free and will always be.
 </p>
 
 ---
@@ -52,28 +56,45 @@ to suit their usecase.
 - 🧠 Supports advanced Markdown syntax via [Markdig](https://github.com/xoofx/markdig)
 - 🖼️ Toggle between edit and preview modes with `Ctrl+E`
 - 📂 Open a folder and explore `.md` files via a responsive TreeView
-- 🔄 Auto-renders preview on text changes
 - 💾 Save markdown files after editing.
+- ✅ Rendered Checkboxes that update md
+- Rendered & Editable file properties (Currently supporting tags, aliases & date)
+- Bi-Directional note linking. 
+  - Using "[[]]" syntax you can link notes together and receive a preview of it on mouse over.
+  - Left click to change to the clicked note.
 ---
 
-## 🚧 Planned Features for MVP
+## 🚧 Features for MVP
 
 > A brief breakdown of completed and planned features to reach MVP.
 
-| Date Implemented | Feature                                                                                                                   |
-|------------------|---------------------------------------------------------------------------------------------------------------------------|
-| 2025-04-29       | ~~Initial Avalonia UI scaffold, editor + preview mode toggle~~                                                            |
-| 2025-04-29       | ~~TreeView loads `.md` files from folders and supports nested folders~~                                                   |
-| 2025-05-01       | ~~Savable editable markdown text~~                                                                                        |
-|                  | Robust pane system including tabs: Draggable, pivot-able, panels.                                                         |
-|                  | Feature rich markdown rendering: Checkboxes, yaml header file properties, bi-directional note linking, images & files etc |
-|                  | Settings panel: UI properties and application settings, save settings on startup, project properties.                     |
-|                  | Command Palette: Execute searchable commands.                                                                             |
-|                  | Search: Search throughout application or folder.                                                                          |
-|                  | Advanced data analytics, visual graphs, queries, statistics                                                               |
-
+| Feature                                                                                                    |
+|------------------------------------------------------------------------------------------------------------|
+| ~~Initial Avalonia UI scaffold, editor + preview mode toggle~~                                             |
+| ~~TreeView loads `.md` files from folders and supports nested folders~~                                    |
+| ~~Savable editable markdown text~~                                                                         |
+| Robust pane system including tabs: Draggable, pivot-able, panels.                                          |
+| ~~Feature rich markdown rendering: Checkboxes, yaml header file properties, bi-directional note linking.~~ |
+| Settings panel: UI properties and application settings, save settings on startup, project properties.      |
+| Command Palette: Execute searchable commands.                                                              |
+| Search: Search throughout application or folder.                                                           |
+| Templates: Ability to create notes based off note templates.                                               |
+| Daily Notes: A note that is generated daily when opening the editor.                                       |
 
 ---
+
+## 🔮 Planned Future Features
+
+> Features coming after MVP
+
+| Feature                                                                                                                  |
+|--------------------------------------------------------------------------------------------------------------------------|
+|                                                                                                                          |
+| Data analytics: Tools to enable note data manipulation, editing, graph and statistical analysis.                         |
+| Projects: A pipeline the user can create. Enables easy manipulation of common tasks surrounding a single, large project. |
+| ZettelKasten support: Provide ease of settings up, editing, viewing and navigating a user created ZettelKasten.          | 
+| (More features to come here!)                                                                                            |
+
 
 ## 🔧 Tech Stack
 
@@ -87,7 +108,13 @@ to suit their usecase.
 ## 📂 Folder Structure
 
 ```bash
-Scoria/
-├── docs/               # Docs, Icons, screenshots, etc.
-├── Scoria/             # Project source files 
-└── README.md
+Scoria/                     # project root
+├─ docs/                    # screenshots, design notes, diagrams
+├─ Scoria/                  # ⬅ all source files live here
+│  ├─ Controls/             # reusable Avalonia user-controls (TagBadge, …)
+│  ├─ Models/               # simple POCOs (FileItem, NoteMetadata, …)
+│  ├─ Rendering/            # MarkdownRenderer + helpers
+│  ├─ Services/             # I/O, toast notifications, link index, YAML parser
+│  ├─ ViewModels/           # MVVM glue (MainWindowViewModel)
+│  ├─ Views/                # XAML views (MainWindow, App.axaml, …)
+└─ README.md

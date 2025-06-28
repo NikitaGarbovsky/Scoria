@@ -1,5 +1,54 @@
+############################
+# Build output & cache
+############################
 bin/
 obj/
-/packages/
+artifacts/
+*.cache
+*.ilk
+*.pdb
+*.log         # remove if you track logs
+
+############################
+# NuGet / package restore
+############################
+/packages/          # legacy “packages” folder
+*.nupkg
+*.snupkg
+project.lock.json
+project.assets.json
+
+############################
+# IDE / editor metadata
+############################
+.vs/                # Visual Studio
+.idea/              # JetBrains Rider / IntelliJ
+.vscode/            # VS Code workspace settings
+_ReSharper.Caches/
+*.DotSettings.user  # Rider user-specific settings
 riderModule.iml
-/_ReSharper.Caches/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+############################
+# OS-specific junk
+############################
+.DS_Store           # macOS
+Thumbs.db           # Windows thumbnails
+
+############################
+# Test & profiling artefacts
+############################
+TestResult*/        # Visual Studio test runner
+*.psess
+*.vsp
+*.vspx
+*.vspscc
+*.vssscc
+
+############################
+# Avalonia / XAML designer
+############################
+.avalonia/
