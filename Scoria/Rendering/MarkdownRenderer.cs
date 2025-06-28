@@ -16,49 +16,78 @@ using Markdig.Syntax.Inlines;
 
 namespace Scoria.Rendering
 {
+    /// <summary>
+    /// Converts raw Markdown text into a hierarchy of Avalonia visual controls
+    /// (<see cref="TextBlock"/>, <see cref="CheckBox"/>, etc.) so that it can
+    /// be embedded inside the preview pane.
+    /// <para/>
+    /// <b>Key features</b>
+    /// <list type="bullet">
+    ///   <item>Uses <see cref="Markdig"/> for parsing and normalization.</item>
+    ///   <item>Supports GitHub-style task-list checkboxes
+    ///         (<c>- [ ]</c> &amp; <c>- [x]</c>).</item>
+    ///   <item>Skips link-reference definition blocks (they are invisible).</item>
+    ///   <item>Delegates a clicked checkbox back to the caller via
+    ///         <c>Action&lt;int,bool&gt;</c> giving the zero-based line index.</item>
+    /// </list>
+    /// </summary>
     public class MarkdownRenderer
     {
-        private readonly MarkdownPipeline _pipeline;
+        /*──────────────────────────── 1. Pipeline set-up ───────────────────────────*/
+        private readonly MarkdownPipeline pipeline;
 
+        /// <summary>Creates a pipeline with most “advanced” extensions and task lists.</summary>
         public MarkdownRenderer()
         {
-            _pipeline = new MarkdownPipelineBuilder()
+            pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
                 .UseTaskLists()
                 .Build();
         }
+        
         /// <summary>
-        /// Renders the markdown into Avalonia controls.
-        /// onTaskToggled is called with (zero-based lineIndex, newCheckedState)
-        /// whenever the user clicks a checkbox.
+        /// Parse <paramref name="_markdown"/>, build an Avalonia visual tree and
+        /// return its root container.
         /// </summary>
-        public Control Render(string markdown, Action<int,bool> onTaskToggled)
+        /// <param name="_markdown">Raw markdown source.</param>
+        /// <param name="_onTaskToggled">
+        /// Callback invoked whenever the user clicks a checkbox
+        /// – arguments: <c>(lineIndex, newCheckedState)</c>.
+        /// </param>
+        /// <remarks>
+        /// The returned control is a plain <see cref="StackPanel"/> (no internal
+        /// <see cref="ScrollViewer"/>).  The caller’s XAML manages scrolling/
+        /// measuring so wrapping works.
+        /// </remarks>
+        public Control Render(string _markdown, Action<int,bool> _onTaskToggled)
         {
-            // 1) parse into AST once
-            var document = Markdig.Markdown.Parse(markdown, _pipeline);
+            /* 1) Parse into an abstract syntax tree (AST). */
+            var document = Markdig.Markdown.Parse(_markdown, pipeline);
             
-            // 2) walk blocks
+            /* 2) Walk all top-level blocks and convert each one. */
             var panel    = new StackPanel { Spacing = 8 };
             foreach (var block in document)
             {
-                // skip link-reference definitions entirely
+                // Link-reference definitions are purely meta – skip them.
                 if (block is LinkReferenceDefinitionGroup) 
                     continue;
 
-                panel.Children.Add(RenderBlock(block, markdown, onTaskToggled));
+                panel.Children.Add(RenderBlock(block, _markdown, _onTaskToggled));
             }
 
-            return panel;
+            return panel; // caller will wrap in a ScrollViewer
         }
 
+        /*──────────────────────────── 3. Block rendering ──────────────────────────*/
+        
         private Control RenderBlock(
-            Block block, 
-            string markdown,
-            Action<int,bool> onTaskToggled)
+            Block _block, 
+            string _markdown,
+            Action<int,bool> _onTaskToggled)
         {
-            switch (block)
+            switch (_block)
             {
-                // ─── Horizontal rule ─────────────────────────────
+                /*──────── Horizontal rule (---) ───────*/
                 case ThematicBreakBlock _:
                     return new Rectangle
                     {
@@ -102,23 +131,26 @@ namespace Scoria.Rendering
                     // render each item
                     foreach (var item in lb.OfType<ListItemBlock>())
                         listPanel.Children.Add(
-                            RenderListItem(item, lb.IsOrdered, counter++, markdown, onTaskToggled));
+                            RenderListItem(item, lb.IsOrdered, counter++, _markdown, _onTaskToggled));
 
                     return listPanel;
 
-                // ─── Fallback ─────────────────────────────────────
+                /*──────── Anything else → invisible spacer ─────*/
                 default:
                     // return an empty spacer so we don't see block.ToString()
                     return new StackPanel { Margin = new Thickness(0) };
             }
             
         }
+        
+        /*──────────────────────────── 4. List-item rendering ──────────────────────*/
+        
         private Control RenderListItem(
-            ListItemBlock li,
-            bool           isOrdered,
-            int            number,
-            string          markdown,
-            Action<int,bool> onTaskToggled)
+            ListItemBlock _li,
+            bool           _isOrdered,
+            int            _number,
+            string          _markdown,
+            Action<int,bool> _onTaskToggled)
         {
             // container for marker + potential nested lists
             var container = new StackPanel
@@ -128,19 +160,19 @@ namespace Scoria.Rendering
             };
             
             // find the paragraph for this list item
-            var firstPara = li.Descendants<ParagraphBlock>().FirstOrDefault();
+            var firstPara = _li.Descendants<ParagraphBlock>().FirstOrDefault();
             var task = firstPara?
                 .Inline
                 .Descendants<TaskList>()
                 .FirstOrDefault();
 
-            if(task != null)
+            if(task != null) // ───── Task-list checkbox ─────
             {
                 // capture the exact offset
-                var offset = li.Span.Start;
+                var offset = _li.Span.Start;
                 // compute zero-based line index
-                var lineIndex = markdown
-                    .Substring(0, Math.Min(offset, markdown.Length))
+                var lineIndex = _markdown
+                    .Substring(0, Math.Min(offset, _markdown.Length))
                     .Count(c => c == '\n');
                 
                 // build the label text (everything after the [ ] or [x])
@@ -160,15 +192,15 @@ namespace Scoria.Rendering
                 };
                 
                 // capture the exact zero-based source line of this ListItemBlock
-                cb.Checked   += (_,__) => onTaskToggled(lineIndex, true);
-                cb.Unchecked += (_,__) => onTaskToggled(lineIndex, false);
+                cb.Checked   += (_,__) => _onTaskToggled(lineIndex, true);
+                cb.Unchecked += (_,__) => _onTaskToggled(lineIndex, false);
 
                 container.Children.Add(cb);
             }
-            else
+            else // ───── Plain bullet / number ─────
             {
                 // plain bullet or number
-                var bullet = isOrdered ? $"{number}. " : "• ";
+                var bullet = _isOrdered ? $"{_number}. " : "• ";
                 container.Children.Add(new TextBlock
                 {
                     Text         = bullet + (
@@ -183,10 +215,10 @@ namespace Scoria.Rendering
                 });
             }
 
-            // now handle **nested** lists (indent by 20px)
-            foreach (var nested in li.OfType<ListBlock>())
+            /*— Nested lists: indent by 20 px and recurse —*/
+            foreach (var nested in _li.OfType<ListBlock>())
             {
-                var nestedControl = RenderBlock(nested, markdown, onTaskToggled);
+                var nestedControl = RenderBlock(nested, _markdown, _onTaskToggled);
                 nestedControl.Margin = new Thickness(20, 0, 0, 0);
                 container.Children.Add(nestedControl);
             }

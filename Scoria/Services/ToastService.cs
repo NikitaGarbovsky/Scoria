@@ -9,12 +9,30 @@ using Avalonia.Threading;
 
 namespace Scoria.Services
 {
+    /// <summary>
+    /// Tiny helper that shows a transient “toast” notification
+    /// (bottom-right overlay) inside any Avalonia <see cref="Panel"/>.
+    /// <para/>
+    /// Currently hard-wired to display the message <c>"Saved: …"</c> and then:
+    /// <list type="number">
+    ///   <item>Wait 2 s.</item>
+    ///   <item>Fade opacity from 1 → 0 over 5 s (via <see cref="DoubleTransition"/>).</item>
+    ///   <item>Remove the <see cref="Popup"/> from the visual tree.</item>
+    /// </list>
+    /// </summary>
     public class ToastService : IToastService
     {
-        private readonly Panel _host;
+        /*──────────────────────────  State  ──────────────────────────*/
+        private readonly Panel host;
         
-        public ToastService(Panel host) => _host = host;
+        /*──────────────────────────  Ctor  ──────────────────────────*/
         
+        /// <summary>Creates a service bound to a specific visual host panel.</summary>
+        public ToastService(Panel _host) => host = _host;
+        
+        /*──────────────────────────  API  ───────────────────────────*/
+        
+        /// <inheritdoc/>
         public void Show(string _message)
         {
             // 1) Create and configure Popup content and configuration
@@ -43,7 +61,7 @@ namespace Scoria.Services
             // 3) Create the popup
             var popup = new Popup
             {
-                PlacementTarget   = _host,
+                PlacementTarget   = host,
                 PlacementMode     = PlacementMode.AnchorAndGravity,
         
                 // Anchor at the bottom-center of the target
@@ -63,7 +81,7 @@ namespace Scoria.Services
             };
 
             // 4) Display the popup
-            _host.Children.Add(popup);
+            host.Children.Add(popup);
             popup.IsOpen = true;
 
             // 5) After 2s, kick off the fade, then remove after the transition
@@ -81,7 +99,7 @@ namespace Scoria.Services
                 {
                     removeTimer.Stop();
                     popup.IsOpen = false;
-                    _host.Children.Remove(popup);
+                    host.Children.Remove(popup);
                 });
                 removeTimer.Start();
             });

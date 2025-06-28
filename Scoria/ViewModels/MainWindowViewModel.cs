@@ -14,88 +14,120 @@ using Scoria.Rendering;
 
 namespace Scoria.ViewModels
 {
+    /// <summary>
+    /// View-model that backs <c>MainWindow.axaml</c>.
+    /// <para/>
+    /// **Responsibilities**
+    /// <list type="bullet">
+    ///   <item>Maintains UI-state (preview ⇄ edit, selected file, tree, etc.).</item>
+    ///   <item>Loads / saves markdown files on disk.</item>
+    ///   <item>Delegates markdown → Avalonia rendering to <see cref="MarkdownRenderer"/>.</item>
+    ///   <item>Intercepts task-list checkbox clicks in the preview and reflects the change
+    ///         back into the raw markdown text.</item>
+    /// </list>
+    /// </summary>
     public class MainWindowViewModel : ReactiveObject
     {
-        private bool _isEditorVisible   = false;  // start in preview
-        private bool _isPreviewVisible  = true;
+        /*──────────────────────────── 1.  Reactive UI state ───────────────────────────*/
+        
+        private bool isEditorVisible   = false;  // start in preview
+        private bool isPreviewVisible  = true;
 
+        /// <summary>Whether the <see cref="TextBox"/> editor is visible.</summary>
         public bool IsEditorVisible
         {
-            get => _isEditorVisible;
-            private set => this.RaiseAndSetIfChanged(ref _isEditorVisible, value);
+            get => isEditorVisible;
+            private set => this.RaiseAndSetIfChanged(ref isEditorVisible, value);
         }
+        
+        /// <summary>Whether the rendered markdown preview is visible.</summary>
         public bool IsPreviewVisible
         {
-            get => _isPreviewVisible;
-            private set => this.RaiseAndSetIfChanged(ref _isPreviewVisible, value);
+            get => isPreviewVisible;
+            private set => this.RaiseAndSetIfChanged(ref isPreviewVisible, value);
         }
-        private readonly IFileExplorerService _explorer;
-        private readonly IToastService _toast;
-        private readonly MarkdownRenderer _markdownRenderer;
-
-        private bool _inPreview = true;
         
-        public ObservableCollection<FileItem> FileTree { get; } = new();
-        public ReactiveCommand<Unit, Unit> ToggleEditPreviewCommand { get; }
-        public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-        public ReactiveCommand<Unit, Unit> ToggleCommand { get; }
-        public ReactiveCommand<Unit, Unit> RenderCommand             { get; }
-        private string _editorText = "";
+        /*──────────────────────────── 2.  Services injected via ctor ───────────────────*/
+        
+        private readonly IFileExplorerService explorer;
+        private readonly IToastService toastService;
+        private readonly MarkdownRenderer markdownRenderer;
 
+        private bool inPreview = true; // Tracks current mode
+        
+        /*──────────────────────────── 3.  Public bind-able properties ──────────────────*/
+        public ObservableCollection<FileItem> FileTree { get; } = new();
+        
+        private string editorText = "";
+        /// <summary>The plain markdown text currently shown in the editor.</summary>
         public string EditorText
         {
-            get => _editorText;
-            set => this.RaiseAndSetIfChanged(ref _editorText, value);
+            get => editorText;
+            set => this.RaiseAndSetIfChanged(ref editorText, value);
         }
-
-        private Control _previewControl = new TextBlock();
         
+        private Control previewControl = new TextBlock();
+        /// <summary>Cache of the live preview control returned by <see cref="MarkdownRenderer"/>.</summary>
         public Control PreviewControl
         {
-            get => _previewControl;
-            set => this.RaiseAndSetIfChanged(ref _previewControl, value);
+            get => previewControl;
+            set => this.RaiseAndSetIfChanged(ref previewControl, value);
         }
-
-        private FileItem? _selected;
+        
+        private FileItem? selected;
+        /// <summary>The file/folder currently selected in the tree.</summary>
         public FileItem? SelectedItem
         {
-            get => _selected;
+            get => selected;
             set
             {
-                this.RaiseAndSetIfChanged(ref _selected, value);
+                this.RaiseAndSetIfChanged(ref selected, value);
                 if (value != null && !value.IsDirectory)
                     LoadFile(value.Path);
             }
         }
+        
+        /*──────────────────────────── 4.  Reactive commands (bound in XAML) ────────────*/
+        
+        public ReactiveCommand<Unit, Unit> ToggleEditPreviewCommand { get; }
+        public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+        public ReactiveCommand<Unit, Unit> RenderCommand             { get; }
+        
+        /*──────────────────────────── 5.  Construction ────────────────────────────────*/
 
+        /// <summary>DI ctor – receives services from <c>Program.cs</c>.</summary>
         public MainWindowViewModel(
-            IFileExplorerService explorer,
-            IToastService toast,
-            MarkdownRenderer renderer)
+            IFileExplorerService _explorer,
+            IToastService _toastService,
+            MarkdownRenderer _renderer)
         {
-            _explorer        = explorer;
-            _toast           = toast;
-            _markdownRenderer= renderer;
+            explorer         = _explorer;
+            toastService     = _toastService;
+            markdownRenderer = _renderer;
 
             ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
             
             ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
-            SaveCommand               = ReactiveCommand.Create(SaveCurrent);
-            RenderCommand             = ReactiveCommand.Create(RenderPreview);
+            SaveCommand              = ReactiveCommand.Create(SaveCurrent);
+            RenderCommand            = ReactiveCommand.Create(RenderPreview);
             
-            RenderPreview();
+            RenderPreview(); // Show initial empty preview
         }
-        public void LoadFolder(string folder)
+        
+        /*──────────────────────────── 6.  File-tree population helper ─────────────────*/
+        /// <summary>Populates <see cref="FileTree"/> from a disk folder (recursively).</summary>
+        public void LoadFolder(string _folder)
         {
             FileTree.Clear();
-            foreach (var n in _explorer.LoadFolder(folder))
+            foreach (var n in explorer.LoadFolder(_folder))
                 FileTree.Add(n);
         }
-/* ---------- helpers ---------- */
-
+        
+        /*──────────────────────────── 7.  Mode switching & persistence ────────────────*/
+        /// <summary>Handles Ctrl + E – toggles preview / edit.TODO move input to dedicated class</summary>
         private void ToggleMode()
         {
-            if (_inPreview)           // leaving preview → edit
+            if (inPreview)           // leaving preview → edit
             {
                 // show editor
                 IsEditorVisible = true;
@@ -104,52 +136,64 @@ namespace Scoria.ViewModels
             else                      // leaving edit → preview
             {
                 SaveCurrent();        // write file when you exit edit
-                RenderPreview();
+                RenderPreview();       // then refresh preview
                 IsEditorVisible = false;
                 IsPreviewVisible = true;
             }
-            _inPreview = !_inPreview;
+            inPreview = !inPreview;
         }
+        /// <summary>Saves <see cref="EditorText"/> to disk and shows a toast.</summary>
         private void SaveCurrent()
         {
-            if (_selected == null || _selected.IsDirectory) return;
+            // Early out, nothing to save.
+            if (selected?.IsDirectory != false) return; 
 
-            File.WriteAllText(_selected.Path, EditorText);
-            _toast.Show($"Saved: {_selected.Name}");
+            File.WriteAllText(selected.Path, EditorText);
+            toastService.Show($"Saved: {selected.Name}");
         }
-
-        private void LoadFile(string path)
+        /*──────────────────────────── 8.  File-IO helpers ─────────────────────────────*/
+        
+        /// <summary>Loads a markdown file into the editor and renders preview.</summary>
+        private void LoadFile(string _path)
         {
-            EditorText     = File.ReadAllText(path);
+            EditorText     = File.ReadAllText(_path);
             RenderPreview();
         }
+        /*──────────────────────────── 9.  Preview rendering ───────────────────────────*/
+        
+        /// <summary>Regenerates <see cref="PreviewControl"/> from current markdown.</summary>
         private void RenderPreview()
         {
-            PreviewControl = _markdownRenderer.Render(
+            PreviewControl = markdownRenderer.Render(
                 EditorText,
                 OnTaskToggled
             );
         }
+        
+        /*──────────────────────────── 10. Task-list handling ──────────────────────────*/
         /// <summary>
-        /// Used by OnTaskToggled to convert 
+        /// Regex that matches the task-list marker at the start of a line
+        /// <c>- [ ]</c>, <c>- [x]</c> or <c>- [X]</c>.
         /// </summary>
         private static readonly Regex _taskToggleRegex =
             new Regex(@"- \[(?: |x|X)\]", RegexOptions.Compiled);
         /// <summary>
-        /// Called whenever user clicks a checkbox in the rendered view.
-        /// We flip exactly that line in our raw EditorText, then re-render.
+        /// Invoked by <see cref="MarkdownRenderer"/> when a checkbox is toggled
+        /// in the preview. Updates only the affected line inside
+        /// <see cref="EditorText"/> so the markdown stays in sync.
         /// </summary>
-        private void OnTaskToggled(int lineIndex, bool isChecked)
+        private void OnTaskToggled(int _lineIndex, bool _isChecked)
         {
             var lines = EditorText.Split('\n').ToList();
-            if (lineIndex >= 0 && lineIndex < lines.Count)
+            if (_lineIndex >= 0 && _lineIndex < lines.Count)
             {
                 // replace any "- [ ]", "- [x]" or "- [X]" with the desired state:
-                var replacement = isChecked ? "- [x]" : "- [ ]";
-                lines[lineIndex] = _taskToggleRegex.Replace(lines[lineIndex], replacement);
+                var replacement = _isChecked ? "- [x]" : "- [ ]";
+                lines[_lineIndex] = _taskToggleRegex.Replace(lines[_lineIndex], replacement);
                 EditorText = string.Join("\n", lines);
             }
-            RenderPreview();
+            
+            RenderPreview(); // Refresh UI preview to reflect new state
         }
     }
 }
