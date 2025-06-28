@@ -1,0 +1,24 @@
+﻿<UserControl
+    x:Class="Scoria.Controls.TagBadge"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Scoria.Controls">
+
+    <!-- single border owns both colour and corner radius -->
+    <Border
+        Padding="10,4"
+        CornerRadius="12"
+        Background="{Binding BadgeBackground,
+                             RelativeSource={RelativeSource AncestorType=local:TagBadge}}">
+
+        <TextBlock
+            Text="{Binding Text,
+                          RelativeSource={RelativeSource AncestorType=local:TagBadge}}"
+            FontFamily="Inter"
+            FontSize="14"
+            FontWeight="Medium"
+            Foreground="Black"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"/>
+    </Border>
+</UserControl>

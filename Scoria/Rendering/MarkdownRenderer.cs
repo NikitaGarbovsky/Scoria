@@ -1,18 +1,16 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using Markdig;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Markdig.Extensions.TaskLists;
+using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
-using Markdig.Renderers.Normalize;
-using Markdig.Syntax.Inlines;
+using Scoria.Controls;
+using Scoria.Models;
 
 namespace Scoria.Rendering
 {
@@ -33,6 +31,24 @@ namespace Scoria.Rendering
     /// </summary>
     public class MarkdownRenderer
     {
+        // Pastel palette for badges TODO move this to some centralized color styling class in the future.
+        private static readonly Color[] _pastels =
+        {
+            Color.Parse("#FFD6D6"),
+            Color.Parse("#D6FFE2"),
+            Color.Parse("#D6E6FF"),
+            Color.Parse("#FFF5D6"),
+            Color.Parse("#F2D6FF"),
+        };
+        private static SolidColorBrush PickBrush(string _key)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (var ch in _key) hash = hash * 31 + ch;
+                return new SolidColorBrush(_pastels[Math.Abs(hash) % _pastels.Length]);
+            }
+        }
         /*──────────────────────────── 1. Pipeline set-up ───────────────────────────*/
         private readonly MarkdownPipeline pipeline;
 
@@ -42,42 +58,83 @@ namespace Scoria.Rendering
             pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
                 .UseTaskLists()
+                .UseYamlFrontMatter()
                 .Build();
         }
         
         /// <summary>
-        /// Parse <paramref name="_markdown"/>, build an Avalonia visual tree and
-        /// return its root container.
+        /// Parse the raw markdown, optionally enrich it with <paramref name="_metadata"/>,
+        /// and build an Avalonia visual tree representing the preview.
         /// </summary>
-        /// <param name="_markdown">Raw markdown source.</param>
+        /// <param name="_markdown">
+        /// Raw Markdown text, which may include a YAML front-matter fence.
+        /// </param>
+        /// <param name="_metadata">
+        /// Front-matter that has already been extracted from the same markdown.
+        /// When supplied, the renderer adds coloured “badge” pills for
+        /// <c>date</c>, <c>tags</c>, and <c>aliases</c> above the document body.
+        /// Pass <see langword="null" /> to skip badge rendering.
+        /// </param>
         /// <param name="_onTaskToggled">
-        /// Callback invoked whenever the user clicks a checkbox
-        /// – arguments: <c>(lineIndex, newCheckedState)</c>.
+        /// Optional callback fired whenever a task-list checkbox is toggled in the
+        /// preview.  The arguments are the zero-based source line index and the new
+        /// checked state.  Use <see langword="null" /> if no editing is needed.
         /// </param>
         /// <remarks>
-        /// The returned control is a plain <see cref="StackPanel"/> (no internal
-        /// <see cref="ScrollViewer"/>).  The caller’s XAML manages scrolling/
-        /// measuring so wrapping works.
+        /// The returned root is a vertical <see cref="StackPanel"/>—no internal
+        /// <see cref="ScrollViewer"/>—so the host XAML controls scrolling and layout.
+        /// If <paramref name="_metadata"/> is provided, the original YAML fence is
+        /// suppressed and replaced by the badge row.
         /// </remarks>
-        public Control Render(string _markdown, Action<int,bool> _onTaskToggled)
+        public Control Render(string _markdown,
+            NoteMetadata? _metadata,
+            Action<int, bool>? _onTaskToggled = null)
         {
-            /* 1) Parse into an abstract syntax tree (AST). */
-            var document = Markdig.Markdown.Parse(_markdown, pipeline);
-            
-            /* 2) Walk all top-level blocks and convert each one. */
-            var panel    = new StackPanel { Spacing = 8 };
-            foreach (var block in document)
-            {
-                // Link-reference definitions are purely meta – skip them.
-                if (block is LinkReferenceDefinitionGroup) 
-                    continue;
+            var rootPanel = new StackPanel();          // vertical
 
-                panel.Children.Add(RenderBlock(block, _markdown, _onTaskToggled));
+            /* 1️⃣  Render badges if metadata present */
+            if (_metadata is not null &&
+                (_metadata.Tags.Count  + _metadata.Aliases.Count) > 0)
+            {
+                var badgeRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+                
+                // DATE first — only if present
+                if (_metadata.Date is { } d)
+                    badgeRow.Children.Add(new TagBadge
+                    {
+                    Text            = d.ToString("dd-MMM-yy"),
+                    BadgeBackground = PickBrush("date")
+                    });
+                
+                // Tags first
+                foreach (var tag in _metadata.Tags)
+                    badgeRow.Children.Add(new TagBadge
+                    {
+                        Text            = tag,
+                        BadgeBackground = PickBrush("tag:" + tag)
+                    });
+
+                // Aliases
+                foreach (var ali in _metadata.Aliases)
+                    badgeRow.Children.Add(new TagBadge
+                    {
+                        Text            = ali,
+                        BadgeBackground = PickBrush("alias:" + ali)
+                    });
+
+                rootPanel.Children.Add(badgeRow);
             }
 
-            return panel; // caller will wrap in a ScrollViewer
-        }
+            /* 2️⃣  Normal markdown rendering (skip YAML block) */
+            var doc = Markdig.Markdown.Parse(_markdown, pipeline);      // _pipeline: existing field
+            foreach (var block in doc)
+            {
+                if (block is YamlFrontMatterBlock) continue;    // hide the raw YAML
+                rootPanel.Children.Add(RenderBlock(block, _markdown, _onTaskToggled)); 
+            }
 
+            return rootPanel;
+        }
         /*──────────────────────────── 3. Block rendering ──────────────────────────*/
         
         private Control RenderBlock(

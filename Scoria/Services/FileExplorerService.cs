@@ -19,7 +19,7 @@ namespace Scoria.Services
                          .Where(_d => Path.GetFileName(_d) != ".obsidian")
                          .OrderBy(_d => _d))
             {
-                var item = new FileItem(Path.GetFileName(directory), directory, true);
+                var item = new FileItem(Path.GetFileName(directory), directory, true, null);
                 AddChildren(item,directory);
                 yield return item;
             }
@@ -28,7 +28,7 @@ namespace Scoria.Services
             foreach (var file in Directory.GetFiles(_folderPath, "*.md")
                          .OrderBy(_d => _d))
             {
-                yield return new FileItem(Path.GetFileName(file), file, false);
+                yield return new FileItem(Path.GetFileName(file), file, false, null);
             }
         }
 
@@ -44,7 +44,9 @@ namespace Scoria.Services
                          .Where(_d => Path.GetFileName(_d) != ".obsidian")
                          .OrderBy(_d => _d))
             {
-                var child = new FileItem(Path.GetFileName(dir), dir, true);
+                var markdown = File.ReadAllText(_path);
+                var meta     = MetadataParser.Extract(markdown);
+                var child    = new FileItem(Path.GetFileName(dir), _path, false, meta);
                 AddChildren(_parent, dir);
                 _parent.Children.Add(child);
             }
@@ -52,7 +54,9 @@ namespace Scoria.Services
             /* b) Markdown files */
             foreach (var file in Directory.GetFiles(_path, "*.md").OrderBy(_d => _d))
             {
-                _parent.Children.Add(new FileItem(Path.GetFileName(file), file, false));
+                var markdown = File.ReadAllText(file);
+                var meta     = MetadataParser.Extract(markdown);
+                _parent.Children.Add(new FileItem(Path.GetFileName(file), file, false, meta));
             }
         }
     }    

@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="Scoria/App.axaml" value="Scoria/Scoria.csproj" />
+        <entry key="Scoria/Controls/TagBadge.axaml" value="Scoria/Scoria.csproj" />
         <entry key="Scoria/MainWindow.axaml" value="Scoria/Scoria.csproj" />
       </map>
     </option>

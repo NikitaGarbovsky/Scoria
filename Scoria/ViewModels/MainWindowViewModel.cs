@@ -146,10 +146,10 @@ namespace Scoria.ViewModels
         private void SaveCurrent()
         {
             // Early out, nothing to save.
-            if (selected?.IsDirectory != false) return; 
+            if (SelectedItem?.IsDirectory != false) return; 
 
-            File.WriteAllText(selected.Path, EditorText);
-            toastService.Show($" {selected.DisplayName}");
+            File.WriteAllText(SelectedItem.Path, EditorText);
+            toastService.Show($" {SelectedItem.DisplayName}");
         }
         /*──────────────────────────── 8.  File-IO helpers ─────────────────────────────*/
         
@@ -164,10 +164,23 @@ namespace Scoria.ViewModels
         /// <summary>Regenerates <see cref="PreviewControl"/> from current markdown.</summary>
         private void RenderPreview()
         {
-            PreviewControl = markdownRenderer.Render(
-                EditorText,
-                OnTaskToggled
-            );
+            if (SelectedItem is null)
+            { 
+                PreviewControl = markdownRenderer.Render(string.Empty, null, null);
+             return;
+            }
+            // 1). Parse the fresh YAML of the _current_ note
+            var liveMeta = string.IsNullOrEmpty(EditorText)
+                                  ? null
+                                  : MetadataParser.Extract(EditorText);
+            
+            // 2). Render with up-to-date metadata
+            PreviewControl = markdownRenderer.Render(EditorText,
+                                                       liveMeta,
+                                                       OnTaskToggled);
+            
+            // 3). Keep the tree-view model in sync for later searches
+            SelectedItem.Metadata = liveMeta;
         }
         
         /*──────────────────────────── 10. Task-list handling ──────────────────────────*/
