@@ -175,9 +175,11 @@ namespace Scoria.ViewModels
                                   : MetadataParser.Extract(EditorText);
             
             // 2). Render with up-to-date metadata
-            PreviewControl = markdownRenderer.Render(EditorText,
-                                                       liveMeta,
-                                                       OnTaskToggled);
+            PreviewControl = markdownRenderer.Render(
+                EditorText,
+                liveMeta,
+                OnTaskToggled,
+                OnWikiLinkClicked);
             
             // 3). Keep the tree-view model in sync for later searches
             SelectedItem.Metadata = liveMeta;
@@ -208,6 +210,23 @@ namespace Scoria.ViewModels
             
             RenderPreview(); // Refresh UI preview to reflect new state
         }
+        /// <summary>
+        /// Navigates to – and renders – the note referenced by a wiki-link.
+        /// </summary>
+        /// <param name="_slug">
+        /// Basename of the target note (no “.md”, case-insensitive).  
+        /// Obtained from the link the user clicked.
+        /// </param>
+        private void OnWikiLinkClicked(string _slug)
+        {
+            // Resolve the slug to a FileItem in the in-memory index.
+            var target = NoteLinkIndex.Resolve(_slug);
+            if (target is null) return; // Gracefully ignore broken links
+
+            SelectedItem = target;   // Highlight in the tree-view (VM property)
+            
+            // LoadFile refreshes EditorText, Preview pane, metadata etc.
+            LoadFile(target.Path);
+        }
     }
 }
-

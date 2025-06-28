@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Markdig;
 using Avalonia;
@@ -11,7 +12,12 @@ using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Scoria.Controls;
 using Scoria.Models;
-
+using System.Text.RegularExpressions;
+using Avalonia.Controls.Documents;
+using Avalonia.Input;  
+using Avalonia.Controls.Primitives;
+using Scoria.Services;
+ 
 namespace Scoria.Rendering
 {
     /// <summary>
@@ -49,6 +55,10 @@ namespace Scoria.Rendering
                 return new SolidColorBrush(_pastels[Math.Abs(hash) % _pastels.Length]);
             }
         }
+        private static readonly Regex wiki =
+            new(@"\[\[(?<slug>[^\]\|]+)(\|(?<alias>[^\]]+))?\]\]",
+                RegexOptions.Compiled);
+        
         /*──────────────────────────── 1. Pipeline set-up ───────────────────────────*/
         private readonly MarkdownPipeline pipeline;
 
@@ -88,7 +98,8 @@ namespace Scoria.Rendering
         /// </remarks>
         public Control Render(string _markdown,
             NoteMetadata? _metadata,
-            Action<int, bool>? _onTaskToggled = null)
+            Action<int, bool>? _onTaskToggled = null, 
+            Action<string>?      _onWikiLinkClick = null)
         {
             var rootPanel = new StackPanel();          // vertical
 
@@ -130,7 +141,7 @@ namespace Scoria.Rendering
             foreach (var block in doc)
             {
                 if (block is YamlFrontMatterBlock) continue;    // hide the raw YAML
-                rootPanel.Children.Add(RenderBlock(block, _markdown, _onTaskToggled)); 
+                rootPanel.Children.Add(RenderBlock(block, _markdown, _onTaskToggled, _onWikiLinkClick)); 
             }
 
             return rootPanel;
@@ -140,7 +151,8 @@ namespace Scoria.Rendering
         private Control RenderBlock(
             Block _block, 
             string _markdown,
-            Action<int,bool> _onTaskToggled)
+            Action<int,bool> _onTaskToggled,
+            Action<string>?     _onWikiLinkClick = null)
         {
             switch (_block)
             {
@@ -165,16 +177,6 @@ namespace Scoria.Rendering
                     header.Text = string.Concat(hb.Inline.Select(i => i.ToString()));
                     return header;
 
-                // ¶ Paragraph ──────────────────────────────────────
-                case ParagraphBlock pb:
-                    var paragraphText = string.Concat(pb.Inline.Select(i => i.ToString()));
-                    return new TextBlock
-                    {
-                        Text         = paragraphText,
-                        TextWrapping = TextWrapping.Wrap,
-                        Margin       = new Thickness(0,2)
-                    };
-
                  // ─── a list (ordered or bullet) ──────
                 case ListBlock lb:
                     var listPanel = new StackPanel
@@ -188,9 +190,111 @@ namespace Scoria.Rendering
                     // render each item
                     foreach (var item in lb.OfType<ListItemBlock>())
                         listPanel.Children.Add(
-                            RenderListItem(item, lb.IsOrdered, counter++, _markdown, _onTaskToggled));
+                            RenderListItem(item, lb.IsOrdered, counter++, _markdown, _onTaskToggled, _onWikiLinkClick));
 
                     return listPanel;
+                
+                // ¶ Paragraph ──────────────────────────────────────
+                case ParagraphBlock pb:
+                {
+                    var paragraph = new TextBlock
+                    {
+                        TextWrapping = TextWrapping.Wrap,
+                        Margin       = new Thickness(0, 2)
+                    };
+
+                    string raw = string.Concat(pb.Inline.Select(i => i.ToString()));
+                    int pos = 0;
+
+                    foreach (Match m in wiki.Matches(raw))
+                    {
+                        // plain text before the link
+                        if (m.Index > pos)
+                            paragraph.Inlines.Add(new Run { Text = raw.Substring(pos, m.Index - pos) });
+
+                        // ----- wiki-link itself -----
+                        var slug  = m.Groups["slug"].Value;
+                        var alias = m.Groups["alias"].Success
+                            ? m.Groups["alias"].Value
+                            : System.IO.Path.GetFileName(slug);   // strip folders
+                        
+                        var slugKey = System.IO.Path.GetFileNameWithoutExtension(slug);
+                        
+                        // blue underlined text styled like a link
+                        var linkBtn = new Button
+                        {
+                            Content         = alias,                     // just the text string
+                            Background       = Brushes.Transparent,
+                            BorderThickness  = new Thickness(0),
+                            Padding          = new Thickness(0),
+                            Cursor           = new Cursor(StandardCursorType.Hand),
+                            Foreground       = Brushes.DodgerBlue,
+                        };
+                        
+                        // 1). click → navigate
+                        if (_onWikiLinkClick is not null)
+                            linkBtn.Click += (_, __) => _onWikiLinkClick(slugKey);
+                        
+                        /* helper variables captured by the closures */
+                        bool linkHovered  = false;
+                        bool popupHovered = false;
+                        
+                        // 2). hover → preview popup
+                        linkBtn.PointerEntered += (_, __) =>
+                        {
+                            EnsurePopup().IsOpen = true;    // open immediately
+                            linkHovered = true;
+                        };
+
+                        linkBtn.PointerExited += (_, __) =>
+                        {
+                            linkHovered = false;
+                            CloseIfBothLeft();
+                        };
+
+                        Popup EnsurePopup()
+                        {
+                            if (linkBtn.Tag is Popup p) return p;
+
+                            var pop = CreatePreviewPopup(slugKey, _onTaskToggled);
+                            pop.PlacementTarget       = linkBtn;
+                            pop.PlacementMode         = PlacementMode.Bottom;
+                            pop.IsLightDismissEnabled = false;   // we manage close ourselves
+
+                            pop.PointerEntered += (_, __) =>
+                            {
+                                popupHovered = true;
+                            };
+                            pop.PointerExited += (_, __) =>
+                            {
+                                popupHovered = false;
+                                CloseIfBothLeft();
+                            };
+
+                            linkBtn.Tag = pop;
+                            return pop;
+                        }
+
+                        void CloseIfBothLeft()
+                        {
+                            if (!linkHovered && !popupHovered && linkBtn.Tag is Popup pp)
+                                pp.IsOpen = false;
+                        }
+
+                        // wrap the Button in an inline container so the TextBlock can host it
+                        var inlineHost = new InlineUIContainer { Child = linkBtn };
+                        
+                        paragraph.Inlines.Add(inlineHost);
+                        pos = m.Index + m.Length;
+                    }
+
+                    // tail plain text
+                    if (pos < raw.Length)
+                        paragraph.Inlines.Add(new Run { Text = raw.Substring(pos) });
+
+                    return paragraph;
+                }
+
 
                 /*──────── Anything else → invisible spacer ─────*/
                 default:
@@ -207,7 +311,8 @@ namespace Scoria.Rendering
             bool           _isOrdered,
             int            _number,
             string          _markdown,
-            Action<int,bool> _onTaskToggled)
+            Action<int,bool> _onTaskToggled,
+            Action<string>?     _onWikiLinkClick = null)
         {
             // container for marker + potential nested lists
             var container = new StackPanel
@@ -275,12 +380,95 @@ namespace Scoria.Rendering
             /*— Nested lists: indent by 20 px and recurse —*/
             foreach (var nested in _li.OfType<ListBlock>())
             {
-                var nestedControl = RenderBlock(nested, _markdown, _onTaskToggled);
+                var nestedControl = RenderBlock(nested, _markdown, _onTaskToggled, _onWikiLinkClick);
                 nestedControl.Margin = new Thickness(20, 0, 0, 0);
                 container.Children.Add(nestedControl);
             }
 
             return container;
         }
+        /// <summary>
+        /// Builds (or falls back to) a preview-popup for a wiki-link.
+        /// <para>
+        /// • If <paramref name="_slug"/> resolves to an existing note, the popup shows a
+        ///   mini preview (400 × 300, scrollable, themed border).  
+        /// • If it does **not** resolve, the popup shows a minimal red “Note not found”
+        ///   message so broken links are obvious.
+        /// </para>
+        /// <para>
+        /// The method is recursive-safe: when it renders the preview it passes the same
+        /// <paramref name="_onTaskToggled"/> and <paramref name="_onWikiLinkClick"/>
+        /// callbacks, but further wiki-links inside the preview will not open additional
+        /// pop-ups; they are rendered with the same rules.
+        /// </para>
+        /// </summary>
+        /// <param name="_slug">Basename of the note (case-insensitive, no “.md”).</param>
+        /// <param name="_onTaskToggled">
+        /// Callback for task-list checkboxes.  Passed through to <see cref="Render"/> so
+        /// toggling a checkbox inside the popup updates the source note.
+        /// </param>
+        /// <param name="_onWikiLinkClick">
+        /// (Optional) Navigation callback used inside the popup so that clicking a
+        /// wiki-link inside the preview still navigates the main view.
+        /// </param>
+        /// <returns>
+        /// A fully configured <see cref="Popup"/>. It is returned **closed**
+        /// (<c>IsOpen = false</c>).  The caller decides when to open/close.
+        /// </returns>
+        private Popup CreatePreviewPopup(
+            string _slug, 
+            Action<int, bool>? _onTaskToggled,
+            Action<string>?     _onWikiLinkClick = null)
+        {
+            /*────────────────── 1. Try resolve the slug ──────────────────*/
+            var target = NoteLinkIndex.Resolve(_slug);
+            
+            /*--------------------------------------------------------------
+             * 1-A. Missing note → tiny red popup saying “Note not found”.
+             *-------------------------------------------------------------*/
+            if (target is null)
+            {
+                // red “missing” popup
+                return new Popup
+                {
+                    Child = new Border
+                    {
+                        Background = Brushes.MistyRose, // pale red
+                        Padding     = new Thickness(12),
+                        Child       = new TextBlock
+                        {
+                            Text       = "Note not found",
+                            Foreground = Brushes.DarkRed
+                        }
+                    },
+                    // Let the caller or pointer-leave close it automatically
+                    IsLightDismissEnabled = true   // auto-close on outside click
+                };
+            }
+
+            /*────────────────── 2. Load and render the note ──────────────*/
+            var md     = File.ReadAllText(target.Path); // raw markdown
+            var meta   = MetadataParser.Extract(md); // YAML front-matter (if any)
+            
+            // Recursively call Render to build a mini preview; pass through callbacks
+            var preview = Render(md, meta, _onTaskToggled,_onWikiLinkClick);   
+
+            /*────────────────── 3. Wrap in a styled popup ────────────────*/
+            return new Popup
+            {
+                Child = new Border
+                {
+                    Background   = Brushes.White,
+                    CornerRadius = new CornerRadius(8),
+                    Padding      = new Thickness(12),
+                    Width        = 400,
+                    Height       = 300,
+                    Child        = new ScrollViewer { Content = preview }
+                },
+                // Caller controls placement; we handle dismissal on outside click
+                IsLightDismissEnabled = true
+            };
+        }
+
    }
 }

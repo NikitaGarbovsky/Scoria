@@ -8,15 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Scoria/Controls/TagBadge.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Scoria/Controls/TagBadge.axaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Scoria/Models/NoteMetadata.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Scoria/Services/MetadataParser.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/avalonia.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/avalonia.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Scoria/Services/NoteLinkIndex.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Models/FileItem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Models/FileItem.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Scoria.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Scoria.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" afterDir="false" />
     </list>
@@ -53,6 +47,9 @@
     <setting file="file://$PROJECT_DIR$/Scoria/Program.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="Toolset" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 4

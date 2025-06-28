@@ -20,15 +20,20 @@ namespace Scoria.Services
                          .OrderBy(_d => _d))
             {
                 var item = new FileItem(Path.GetFileName(directory), directory, true, null);
-                AddChildren(item,directory);
+                AddChildren(item, directory);
                 yield return item;
             }
 
-            /* 2)  Enumerate top-level markdown files. */
+            /* 2) Enumerate top-level markdown files. */
             foreach (var file in Directory.GetFiles(_folderPath, "*.md")
                          .OrderBy(_d => _d))
             {
-                yield return new FileItem(Path.GetFileName(file), file, false, null);
+                var markdown = File.ReadAllText(file);
+                var meta     = MetadataParser.Extract(markdown);
+
+                var note = new FileItem(Path.GetFileName(file), file, false, meta);
+                NoteLinkIndex.AddOrUpdate(note);   // Register for wiki-links
+                yield return note;
             }
         }
 
@@ -56,7 +61,10 @@ namespace Scoria.Services
             {
                 var markdown = File.ReadAllText(file);
                 var meta     = MetadataParser.Extract(markdown);
+                
+                var childFile = new FileItem(Path.GetFileName(file), file, false, meta);
                 _parent.Children.Add(new FileItem(Path.GetFileName(file), file, false, meta));
+                NoteLinkIndex.AddOrUpdate(childFile); 
             }
         }
     }    
