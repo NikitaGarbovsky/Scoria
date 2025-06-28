@@ -23,7 +23,7 @@
 ## 📸 Preview
 
 <!-- insert screenshots or a demo GIF here -->
-![screenshot](docs/Screenshots/Scoria_0.1.png)
+![screenshot](docs/Screenshots/Scoria_0.2.png)
 
 ---
 
