@@ -44,7 +44,7 @@ namespace Scoria.Services
                 Padding      = new Thickness(8),
                 Child        = new TextBlock
                 {
-                    Text       = $"Saved: {_message}",
+                    Text       = $"Saved:{_message}",
                     Foreground = Brushes.White,
                 },
                 // 2) Add a fade transition on Opacity

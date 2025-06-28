@@ -9,11 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="841e4c05-5747-4b40-8508-5f0637441f9a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Scoria/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Rendering/MarkdownRenderer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/FileExplorerService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Services/IFileExplorerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/IFileExplorerService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scoria/Services/IToastService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/IToastService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/MainWindow.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scoria/Models/FileItem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Models/FileItem.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/Services/ToastService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/Services/ToastService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Scoria/ViewModels/MainWindowViewModel.cs" afterDir="false" />
     </list>

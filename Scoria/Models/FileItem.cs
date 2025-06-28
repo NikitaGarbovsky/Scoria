@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;  
 
 namespace Scoria.Models
 {
@@ -18,6 +19,14 @@ namespace Scoria.Models
             Path = _path;
             IsDirectory = _isDirectory;
         }
+        
+        /// <summary>
+        /// What the UI should show.  
+        /// Folders keep their name; files lose the “.md” extension.
+        /// </summary>
+        public string DisplayName =>
+            IsDirectory ? Name
+                : System.IO.Path.GetFileNameWithoutExtension(Name); // TODO confirm if this is cross platform or not
     }
 }
 

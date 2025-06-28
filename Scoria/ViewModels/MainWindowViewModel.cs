@@ -149,7 +149,7 @@ namespace Scoria.ViewModels
             if (selected?.IsDirectory != false) return; 
 
             File.WriteAllText(selected.Path, EditorText);
-            toastService.Show($"Saved: {selected.Name}");
+            toastService.Show($" {selected.DisplayName}");
         }
         /*──────────────────────────── 8.  File-IO helpers ─────────────────────────────*/
         
