@@ -49,10 +49,21 @@
       </StackPanel>
       
       <!-- file explorer -->
-      <TreeView Grid.Row="2" Grid.Column="0"
+      <TreeView Grid.Row="2"
+                Grid.Column="0"
                 ItemsSource="{Binding FileTree}"
                 SelectedItem="{Binding SelectedItem}"
                 Margin="8">
+
+        <!-- auto-expand/collapse via FileItem.IsExpanded -->
+        <TreeView.Styles>
+          <Style Selector="TreeViewItem" x:DataType="models:FileItem">
+            <Setter Property="IsExpanded"
+                    Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <Setter Property="IsSelected"
+                    Value="{Binding IsSelected, Mode=TwoWay}" />
+          </Style>
+        </TreeView.Styles>
 
         <TreeView.ItemTemplate>
           <tpl:TreeDataTemplate ItemsSource="{Binding Children}"

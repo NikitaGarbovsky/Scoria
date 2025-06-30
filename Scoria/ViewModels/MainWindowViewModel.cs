@@ -294,15 +294,37 @@ tags: []
 # {name}
 
 ";
-            File.WriteAllText(fullPath, content);
+            await File.WriteAllTextAsync(fullPath, content);
 
             /* 4) Refresh file-tree & open the new note */
             await LoadFolderAsync(RootFolder);
             
-            var newItem = NoteLinkIndex.Resolve(
-                Path.GetFileNameWithoutExtension(fullPath));
-            SelectedItem = newItem ?? SelectedItem;
+    /* --------- Now that the file is created and configured, we want to properly display it to the user --------- */
+    
+            // 5) Grab the note we just created. 
+            var newItem = NoteLinkIndex.ResolvePath(fullPath);
+
+            if (newItem is null) return; // early out if something went wrong TODO probably do something 
+            
+            // 6) Expand the directory/s that contain the note. 
+            ExpandParents(newItem);   
+            
+            // 7) Select on the *next* UI-tick, when the item container exists
+            // (we do this so the background processes that load the file can complete before we display it to the user)
+            Dispatcher.UIThread.Post(
+                () => SelectedItem = newItem,
+                DispatcherPriority.Background);
+            
+            // 8) Finally load the file and set it to selected state. 
             LoadFile(fullPath);
+            newItem.IsSelected = true;   
         }
+        /// <summary>Walks up to root and flags every folder as expanded.</summary>
+        private static void ExpandParents(FileItem _node)
+        {
+            for (var p = _node.Parent; p != null; p = p.Parent)
+                p.IsExpanded = true;
+        }
+
     }
 }
