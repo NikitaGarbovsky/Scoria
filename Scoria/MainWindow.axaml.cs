@@ -42,18 +42,19 @@ namespace Scoria.Views
         /*──────────────────────────── 2.  Toolbar Buttons ──────────────────*/
         
         /// <summary>
-        /// Opens a system folder-picker, then calls
-        /// <see cref="MainWindowViewModel.LoadFolder(string)"/> on the VM.
+        /// — Handles the “📂 Open Folder” toolbar button.  
+        /// — Shows a native folder-picker dialog and waits for the user.  
+        /// — If a path is chosen, asynchronously tells the view-model to scan that folder
+        ///    and refresh the file-tree without blocking the UI thread.
         /// </summary>
-        private async void OpenFolder_Click(object? _sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OpenFolder_Click(object? _sender, Avalonia.Interactivity.RoutedEventArgs _e)
         {
-            var vm  = (MainWindowViewModel)DataContext!;
-            var dlg = new OpenFolderDialog { Title = "Select a vault / folder" };
-            
+            var dlg = new OpenFolderDialog { Title = "Select a folder" };
+
             string? path = await dlg.ShowAsync(this);
-            
-            if (!string.IsNullOrWhiteSpace(path))
-                vm.LoadFolder(path);              // simple helper on the VM
+
+            if (!string.IsNullOrEmpty(path))
+                await ((MainWindowViewModel)DataContext!).LoadFolderAsync(path);
         }
         
         /// <summary>

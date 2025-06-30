@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Markdig.Extensions.TaskLists;
@@ -129,24 +130,21 @@ namespace Scoria.ViewModels
         /*──────────────────────────── 6.  File-tree population helper ─────────────────*/
         
         /// <summary>Populates <see cref="FileTree"/> from a disk folder (recursively).</summary>
-        public void LoadFolder(string _folder)
+        public async Task LoadFolderAsync(string _folder)
         {
-            // Loads the root folder 
-            RootFolder   = _folder;    
-            
-            // Heavy IO, TODO might want to make this method async
-            var fileItems = explorer.LoadFolder(_folder).ToList();
-            
-            // Creates a lambda which is executed on the UIThread for loading the fileItems to UI.
-            Dispatcher.UIThread.Post(() =>
+            // 1) heavy disk scan off-UI thread
+            var items = await Task.Run(() => explorer.LoadFolder(_folder).ToList());
+
+            // 2) UI updates on dispatcher
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                RootFolder   = _folder;
                 FileTree.Clear();
-                foreach (var n in fileItems)        
-                    FileTree.Add(n);
-                IsFolderOpen = true;            
+                foreach (var it in items)
+                    FileTree.Add(it);
+                IsFolderOpen = true;
             });
         }
-        
         /*──────────────────────────── 7.  Mode switching & persistence ────────────────*/
         
         /// <summary>Handles Ctrl + E – toggles preview / edit.TODO move input to dedicated class</summary>
@@ -259,7 +257,7 @@ namespace Scoria.ViewModels
         }
         
         /// <summary>Create a blank “New Note.md” in the currently-selected directory.</summary>
-        public void CreateNote()
+        public async void CreateNote()
         { 
             // Should never be able to be executable if no folders are open.
             if (!IsFolderOpen)        
@@ -299,7 +297,8 @@ tags: []
             File.WriteAllText(fullPath, content);
 
             /* 4) Refresh file-tree & open the new note */
-            LoadFolder(RootFolder);                               
+            await LoadFolderAsync(RootFolder);
+            
             var newItem = NoteLinkIndex.Resolve(
                 Path.GetFileNameWithoutExtension(fullPath));
             SelectedItem = newItem ?? SelectedItem;
