@@ -41,6 +41,11 @@
         <Button Content="📂 Open Folder"
                 Click="OpenFolder_Click"
                 Background="Transparent"/>
+        <Button Content="＋ New note"
+                Click="CreateNote_Click"
+                ToolTip.Tip="Create a blank markdown file in the selected folder"
+                IsEnabled="{Binding IsFolderOpen}"/>
+                
       </StackPanel>
       
       <!-- file explorer -->

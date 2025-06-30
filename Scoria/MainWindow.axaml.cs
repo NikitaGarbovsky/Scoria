@@ -39,7 +39,7 @@ namespace Scoria.Views
                 new MarkdownRenderer());                // markdown → visuals
         }
 
-        /*──────────────────────────── 2.  Toolbar “Open Folder” ──────────────────*/
+        /*──────────────────────────── 2.  Toolbar Buttons ──────────────────*/
         
         /// <summary>
         /// Opens a system folder-picker, then calls
@@ -56,6 +56,21 @@ namespace Scoria.Views
                 vm.LoadFolder(path);              // simple helper on the VM
         }
         
+        /// <summary>
+        /// Creates a blank “New Note.md” **in the directory that’s currently
+        /// selected** in the tree.  
+        ///     – Disabled automatically while no folder is loaded  
+        ///     – No dialogs / blocking UI
+        /// </summary>
+        private void CreateNote_Click(object? _sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            var vm = (MainWindowViewModel)DataContext!;
+            if (!vm.IsFolderOpen) // safety-guard
+                return;
+            
+            // Execute the create note functionality in the view model.            
+            vm.CreateNote();                
+        }
         /*──────────────────────────── 3.  Custom title-bar dragging ───────────────*/
         
         /// <summary>

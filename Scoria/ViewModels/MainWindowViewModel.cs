@@ -3,8 +3,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Markdig.Extensions.TaskLists;
 using Markdig.Syntax;
 using ReactiveUI;
@@ -52,7 +54,6 @@ namespace Scoria.ViewModels
         private readonly IFileExplorerService explorer;
         private readonly IToastService toastService;
         private readonly MarkdownRenderer markdownRenderer;
-
         private bool inPreview = true; // Tracks current mode
         
         /*──────────────────────────── 3.  Public bind-able properties ──────────────────*/
@@ -86,7 +87,20 @@ namespace Scoria.ViewModels
                     LoadFile(value.Path);
             }
         }
-        
+        private bool isFolderOpen;
+        public bool IsFolderOpen
+        {
+            get => isFolderOpen;
+            private set => this.RaiseAndSetIfChanged(ref isFolderOpen, value);
+        }
+        private string rootFolder = "";
+
+        public string RootFolder
+        {
+            get => rootFolder;
+            private set => this.RaiseAndSetIfChanged(ref rootFolder, value);
+        }
+
         /*──────────────────────────── 4.  Reactive commands (bound in XAML) ────────────*/
         
         public ReactiveCommand<Unit, Unit> ToggleEditPreviewCommand { get; }
@@ -104,8 +118,6 @@ namespace Scoria.ViewModels
             explorer         = _explorer;
             toastService     = _toastService;
             markdownRenderer = _renderer;
-
-            ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
             
             ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
             SaveCommand              = ReactiveCommand.Create(SaveCurrent);
@@ -115,15 +127,28 @@ namespace Scoria.ViewModels
         }
         
         /*──────────────────────────── 6.  File-tree population helper ─────────────────*/
+        
         /// <summary>Populates <see cref="FileTree"/> from a disk folder (recursively).</summary>
         public void LoadFolder(string _folder)
         {
-            FileTree.Clear();
-            foreach (var n in explorer.LoadFolder(_folder))
-                FileTree.Add(n);
+            // Loads the root folder 
+            RootFolder   = _folder;    
+            
+            // Heavy IO, TODO might want to make this method async
+            var fileItems = explorer.LoadFolder(_folder).ToList();
+            
+            // Creates a lambda which is executed on the UIThread for loading the fileItems to UI.
+            Dispatcher.UIThread.Post(() =>
+            {
+                FileTree.Clear();
+                foreach (var n in fileItems)        
+                    FileTree.Add(n);
+                IsFolderOpen = true;            
+            });
         }
         
         /*──────────────────────────── 7.  Mode switching & persistence ────────────────*/
+        
         /// <summary>Handles Ctrl + E – toggles preview / edit.TODO move input to dedicated class</summary>
         private void ToggleMode()
         {
@@ -151,6 +176,7 @@ namespace Scoria.ViewModels
             File.WriteAllText(SelectedItem.Path, EditorText);
             toastService.Show($" {SelectedItem.DisplayName}");
         }
+        
         /*──────────────────────────── 8.  File-IO helpers ─────────────────────────────*/
         
         /// <summary>Loads a markdown file into the editor and renders preview.</summary>
@@ -159,6 +185,7 @@ namespace Scoria.ViewModels
             EditorText     = File.ReadAllText(_path);
             RenderPreview();
         }
+        
         /*──────────────────────────── 9.  Preview rendering ───────────────────────────*/
         
         /// <summary>Regenerates <see cref="PreviewControl"/> from current markdown.</summary>
@@ -186,6 +213,7 @@ namespace Scoria.ViewModels
         }
         
         /*──────────────────────────── 10. Task-list handling ──────────────────────────*/
+        
         /// <summary>
         /// Regex that matches the task-list marker at the start of a line
         /// <c>- [ ]</c>, <c>- [x]</c> or <c>- [X]</c>.
@@ -210,6 +238,7 @@ namespace Scoria.ViewModels
             
             RenderPreview(); // Refresh UI preview to reflect new state
         }
+        
         /// <summary>
         /// Navigates to – and renders – the note referenced by a wiki-link.
         /// </summary>
@@ -227,6 +256,54 @@ namespace Scoria.ViewModels
             
             // LoadFile refreshes EditorText, Preview pane, metadata etc.
             LoadFile(target.Path);
+        }
+        
+        /// <summary>Create a blank “New Note.md” in the currently-selected directory.</summary>
+        public void CreateNote()
+        { 
+            // Should never be able to be executable if no folders are open.
+            if (!IsFolderOpen)        
+                return;
+            
+            // 1) Decide which directory to use
+            var dir = SelectedItem switch
+            {
+                null                          => RootFolder,                       // nothing selected
+                { IsDirectory: true } d       => d.Path,                            // folder node is selected
+                { IsDirectory: false } f      => Path.GetDirectoryName(f.Path)!,    // note → its parent dir
+            };
+
+            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
+                return; // nothing we can do
+
+            // 2) Pick a unique file name
+            var baseName = "New Note";
+            var name = baseName;
+            var i = 1;
+            while (File.Exists(Path.Combine(dir, $"{name}.md")))
+                name = $"{baseName} {i++}";
+
+            var fullPath = Path.Combine(dir, $"{name}.md");
+
+            // 3) Write a starter file (front-matter + heading)
+            var today = DateOnly.FromDateTime(DateTime.Now).ToString("dd-MMM-yy");
+            var content = 
+$@"---
+date: {today}
+tags: []
+---
+
+# {name}
+
+";
+            File.WriteAllText(fullPath, content);
+
+            /* 4) Refresh file-tree & open the new note */
+            LoadFolder(RootFolder);                               
+            var newItem = NoteLinkIndex.Resolve(
+                Path.GetFileNameWithoutExtension(fullPath));
+            SelectedItem = newItem ?? SelectedItem;
+            LoadFile(fullPath);
         }
     }
 }
