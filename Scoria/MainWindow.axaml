@@ -5,7 +5,9 @@
     xmlns:viewModels="clr-namespace:Scoria.ViewModels"
     xmlns:models="clr-namespace:Scoria.Models"
     xmlns:tpl="clr-namespace:Avalonia.Markup.Xaml.Templates;assembly=Avalonia.Markup.Xaml"
+    xmlns:ctrls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
     x:Class="Scoria.Views.MainWindow"
+    x:Name="RootWin"
     Title="Scoria"
     Width="900" Height="900"
     TransparencyLevelHint="AcrylicBlur"
@@ -62,6 +64,18 @@
                     Value="{Binding IsExpanded, Mode=TwoWay}" />
             <Setter Property="IsSelected"
                     Value="{Binding IsSelected, Mode=TwoWay}" />
+            
+            <!-- context-menu (shown on right-click) -->
+            <Setter Property="ContextMenu">
+              <ContextMenu  x:DataType="viewModels:MainWindowViewModel"> 
+                <MenuItem Header="Rename" 
+                          Command="{Binding RenameCommand}"
+                          CommandParameter="{Binding}" />
+                <MenuItem Header="Delete"
+                          Command="{Binding DeleteCommand}"
+                          CommandParameter="{Binding}" />
+              </ContextMenu>
+            </Setter>
           </Style>
         </TreeView.Styles>
 
@@ -70,6 +84,7 @@
                                 x:DataType="models:FileItem">
             <TextBlock Text="{Binding DisplayName}" />
           </tpl:TreeDataTemplate>
+          
         </TreeView.ItemTemplate>
 
       </TreeView>

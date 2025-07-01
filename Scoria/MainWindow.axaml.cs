@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Scoria.Models;
 using Scoria.Services;
 using Scoria.Rendering;
 using Scoria.ViewModels;
@@ -82,6 +83,15 @@ namespace Scoria.Views
         private void TitleBar_PointerPressed(object _sender, PointerPressedEventArgs _e)
         {
             BeginMoveDrag(_e);
+        }
+
+        private void RenameBox_KeyUp(object? _sender, KeyEventArgs _e)
+        {
+            if (DataContext is not MainWindowViewModel vm || _sender is not TextBox box) return;
+            if(box.DataContext is not FileItem file) return;
+            
+            if(_e.Key == Key.Enter) vm.FinishRename(file, _commit:true, _newName: box.Text);
+            if(_e.Key == Key.Escape) vm.FinishRename(file, _commit:false);
         }
     }
 }

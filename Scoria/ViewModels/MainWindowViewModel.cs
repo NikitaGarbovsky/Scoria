@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Markdig.Extensions.TaskLists;
@@ -107,7 +108,8 @@ namespace Scoria.ViewModels
         public ReactiveCommand<Unit, Unit> ToggleEditPreviewCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         public ReactiveCommand<Unit, Unit> RenderCommand             { get; }
-        
+        public ReactiveCommand<FileItem, Unit> RenameCommand { get; }
+        public ReactiveCommand<FileItem, Unit> DeleteCommand { get; }
         /*──────────────────────────── 5.  Construction ────────────────────────────────*/
 
         /// <summary>DI ctor – receives services from <c>Program.cs</c>.</summary>
@@ -123,6 +125,8 @@ namespace Scoria.ViewModels
             ToggleEditPreviewCommand = ReactiveCommand.Create(ToggleMode);
             SaveCommand              = ReactiveCommand.Create(SaveCurrent);
             RenderCommand            = ReactiveCommand.Create(RenderPreview);
+            RenameCommand = ReactiveCommand.Create<FileItem>(BeginInlineRename);
+            DeleteCommand = ReactiveCommand.Create<FileItem>(PromptAndDelete);
             
             RenderPreview(); // Show initial empty preview
         }
@@ -326,5 +330,83 @@ tags: []
                 p.IsExpanded = true;
         }
 
+        private void BeginInlineRename(FileItem _item)
+        {
+            // 1) Switch template from TextBlock -> TextBox
+            _item.IsEditing = true;
+            
+            // 2) When user presses Enter / Escape the view will call FinishRename()
+        }
+
+        public void FinishRename(FileItem _item, bool _commit, string? _newName = null)
+        {
+            _item.IsEditing = false;
+            if (!_commit || string.IsNullOrWhiteSpace(_newName) || _newName == _item.DisplayName) return;
+            
+            /* Disk rename -> Propagate everywhere */
+            string newPath = Path.Combine(Path.GetDirectoryName(_item.Path), $"{_newName}.md");
+            if(_item.IsDirectory)
+                Directory.Move(_item.Path, newPath);
+            else
+                File.Move(_item.Path, newPath);
+
+            _item.DisplayName = $"{_newName}{(_item.IsDirectory ? "" : ".md")}";
+            _item.Path = newPath;
+            
+            NoteLinkIndex.AddOrUpdate(_item);
+        }
+
+        private async void PromptAndDelete(FileItem _item)
+        {
+            bool deleteAll = true; // Default for files
+
+            if (_item.IsDirectory)
+            {
+                var msg = new Window
+                {
+                    Content = new TextBlock
+                    {
+                        Text = "Delete folder with all its contents?",
+                        Margin = new Thickness(20)
+                    }
+                };
+
+                var yes = new Button { Content = "Yes, all" };
+                var no = new Button { Content = "No, keep files" };
+                var cancel = new Button { Content = "Cancel" };
+                
+                /* Simple three-button dialog */
+                var tcs = new TaskCompletionSource<string>();
+                yes.Click += (_, __) => tcs.TrySetResult("all");
+                no.Click += (_, __) => tcs.TrySetResult("folder");
+                cancel.Click += (_, __) => tcs.TrySetResult("cancel");
+                
+                msg.Content = new StackPanel{ Children = { yes, no, cancel } };
+                msg.ShowDialog((Window?)null);
+                var result = await tcs.Task;
+                msg.Close();
+
+                if (result == "cancel") return;
+                deleteAll = result == "all";
+            }
+            
+            /* Physical delete */
+            if (_item.IsDirectory)
+            {
+                if(deleteAll)
+                    Directory.Delete(_item.Path, recursive:true);
+                else
+                {
+                    foreach (var f in Directory.GetFiles(_item.Path, "*", SearchOption.AllDirectories))
+                        File.Move(f, Path.Combine(Path.GetDirectoryName(_item.Path), Path.GetFileName(f)));
+                    Directory.Delete(_item.Path); // Now empty
+                }
+            }
+            else    
+                File.Delete(_item.Path);
+            
+            /* Refresh tree */
+            await LoadFolderAsync(RootFolder);
+        }
     }
 }
